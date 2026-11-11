@@ -34,5 +34,10 @@ putenv('APP_ROUTES_CACHE=/tmp/routes.php');
 putenv('APP_EVENTS_CACHE=/tmp/events.php');
 putenv('VERCEL=1');
 
+// Ensure hot reload indicator is absent in production
+if (file_exists(__DIR__ . '/../public/hot')) {
+    @unlink(__DIR__ . '/../public/hot');
+}
+
 // Forward serverless request to public/index.php
 require __DIR__ . '/../public/index.php';
