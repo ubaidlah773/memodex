@@ -1,166 +1,147 @@
 <x-app-layout>
-    <x-slot name="title">Admin Control Panel — MEMODEX</x-slot>
+    <x-slot name="title">Admin Center — MEMODEX</x-slot>
 
-    <div class="space-y-6">
-        <!-- Admin Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-memodex-border">
+    <div class="space-y-10">
+        <!-- Header -->
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#C8D2DF]/[0.08]">
             <div>
-                <span class="text-[11px] font-mono tracking-widest uppercase text-memodex-accent-warm">System Administration</span>
-                <h1 class="text-2xl font-bold tracking-tight text-memodex-text mt-1">Admin Control Center</h1>
-                <p class="text-xs text-memodex-muted mt-0.5">
-                    Platform metrics, frame configurations, and storage allocation oversight.
-                </p>
+                <p class="text-xs font-medium tracking-wider uppercase text-[#D4B36A]">System Administration</p>
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8] mt-1">Admin Control Center</h1>
+                <p class="text-sm text-[#9DAABD] mt-1">Platform telemetry, outer frame mounts, and collector storage management.</p>
             </div>
-
-            <div class="flex items-center gap-2 self-start sm:self-auto">
-                <a href="{{ route('admin.frames.index') }}" class="px-3.5 py-1.5 rounded-lg border border-memodex-border bg-memodex-raised hover:bg-memodex-soft text-xs font-medium text-memodex-text transition-colors">
-                    Manage Frames ({{ $activeFrames }}/{{ $totalFrames }})
+            <div class="flex items-center gap-2.5 self-start sm:self-auto">
+                <a href="{{ route('admin.frames.index') }}" class="memodex-btn-secondary text-xs">
+                    Frames ({{ $activeFrames }}/{{ $totalFrames }})
                 </a>
-                <a href="{{ route('admin.users.index') }}" class="px-3.5 py-1.5 rounded-lg border border-memodex-border bg-memodex-raised hover:bg-memodex-soft text-xs font-medium text-memodex-text transition-colors">
-                    Manage Users ({{ $totalUsers }})
+                <a href="{{ route('admin.users.index') }}" class="memodex-btn-secondary text-xs">
+                    Collectors ({{ $totalUsers }})
                 </a>
             </div>
-        </div>
+        </section>
 
-        <!-- Metric Stat Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="p-5 rounded-xl border border-memodex-border bg-memodex-panel space-y-2">
-                <span class="text-[10px] font-mono uppercase text-memodex-subtle">Total Collectors</span>
-                <p class="text-2xl font-bold text-memodex-text">{{ number_format($totalUsers) }}</p>
-                <span class="text-[11px] text-memodex-muted block">Registered accounts</span>
+        <!-- Clean Inline Telemetry Ledger (replaces 4 SaaS cards) -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-6 py-5 px-6 rounded-2xl bg-[#17243A] border border-[#C8D2DF]/10">
+            <div>
+                <span class="text-xs text-[#6D7A8D] block">Collectors</span>
+                <span class="font-display text-2xl font-semibold text-[#F3F5F8] tabular-nums mt-1 block">{{ number_format($totalUsers) }}</span>
             </div>
-
-            <div class="p-5 rounded-xl border border-memodex-border bg-memodex-panel space-y-2">
-                <span class="text-[10px] font-mono uppercase text-memodex-subtle">Archived Cards</span>
-                <p class="text-2xl font-bold text-memodex-primary">{{ number_format($totalCards) }}</p>
-                <span class="text-[11px] text-memodex-muted block">Framed collections</span>
+            <div>
+                <span class="text-xs text-[#6D7A8D] block">Archived Cards</span>
+                <span class="font-display text-2xl font-semibold text-[#69AFFF] tabular-nums mt-1 block">{{ number_format($totalCards) }}</span>
             </div>
-
-            <div class="p-5 rounded-xl border border-memodex-border bg-memodex-panel space-y-2">
-                <span class="text-[10px] font-mono uppercase text-memodex-subtle">Total Albums</span>
-                <p class="text-2xl font-bold text-memodex-accent-warm">{{ number_format($totalAlbums) }}</p>
-                <span class="text-[11px] text-memodex-muted block">Collector binders</span>
+            <div>
+                <span class="text-xs text-[#6D7A8D] block">Active Binders</span>
+                <span class="font-display text-2xl font-semibold text-[#D4B36A] tabular-nums mt-1 block">{{ number_format($totalAlbums) }}</span>
             </div>
-
-            <div class="p-5 rounded-xl border border-memodex-border bg-memodex-panel space-y-2">
-                <span class="text-[10px] font-mono uppercase text-memodex-subtle">Private Storage</span>
-                <p class="text-2xl font-bold text-memodex-text">{{ number_format($totalStorageBytes / (1024 * 1024), 2) }} MB</p>
-                <span class="text-[11px] text-memodex-muted block">Originals + Framed PNGs</span>
+            <div>
+                <span class="text-xs text-[#6D7A8D] block">Vault Storage</span>
+                <span class="font-display text-2xl font-semibold text-[#F3F5F8] tabular-nums mt-1 block">{{ number_format($totalStorageBytes / (1024 * 1024), 2) }} MB</span>
             </div>
-        </div>
+        </section>
 
-        <!-- Two Columns: Active Frames & Recent Users -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            <!-- Active Outer Frames -->
-            <div class="lg:col-span-7 p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
+        <!-- Two Columns: Frames & Recent Collectors -->
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div class="lg:col-span-7 space-y-4">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-sm font-bold text-memodex-text">Outer Frame Collection ({{ $frames->count() }})</h2>
-                        <p class="text-[11px] text-memodex-muted">Archival frames available to collectors.</p>
-                    </div>
-                    <a href="{{ route('admin.frames.index') }}" class="text-xs text-memodex-primary hover:underline">
-                        Configure All &rarr;
-                    </a>
+                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Outer Frame Registry ({{ $frames->count() }})</h2>
+                    <a href="{{ route('admin.frames.index') }}" class="text-xs font-medium text-[#69AFFF] hover:underline">Manage All &rarr;</a>
                 </div>
 
-                <div class="divide-y divide-memodex-border/60">
-                    @foreach ($frames as $fr)
-                        <div class="py-3 flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="w-6 h-6 rounded-full border shadow-sm flex-shrink-0" style="background-color: {{ $fr->config['border_primary'] ?? '#3D4F66' }}; border-color: {{ $fr->config['accent_color'] ?? '#83B9F2' }};"></div>
-                                <div>
+                <div class="rounded-2xl bg-[#17243A]/70 border border-[#C8D2DF]/10 divide-y divide-[#C8D2DF]/[0.07]">
+                    @forelse ($frames as $fr)
+                        @php $fc = $fr->config ?? []; @endphp
+                        <div class="p-4 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3.5 min-w-0">
+                                <div class="w-7 h-9 rounded border-2 flex-shrink-0 p-1"
+                                     style="background-color: {{ $fc['outer_bg'] ?? '#0F1622' }}; border-color: {{ $fc['border_primary'] ?? '#3D4F66' }};">
+                                    <div class="w-full h-full rounded-[2px] border" style="border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></div>
+                                </div>
+                                <div class="min-w-0">
                                     <div class="flex items-center gap-2">
-                                        <p class="text-xs font-semibold text-memodex-text">{{ $fr->name }}</p>
-                                        <span class="px-1.5 py-0.2 rounded text-[9px] font-mono font-medium {{ $fr->is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30' }}">
-                                            {{ $fr->is_active ? 'ACTIVE' : 'DISABLED' }}
-                                        </span>
+                                        <p class="text-sm font-medium text-[#F3F5F8] truncate">{{ $fr->name }}</p>
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $fr->is_active ? 'bg-[#5CC99B]' : 'bg-[#EB6F75]' }}" title="{{ $fr->is_active ? 'Active' : 'Disabled' }}"></span>
                                     </div>
-                                    <p class="text-[10px] text-memodex-muted">{{ $fr->description }}</p>
+                                    <p class="text-xs text-[#9DAABD] truncate">{{ $fr->description }}</p>
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-3 text-right">
-                                <span class="text-xs font-mono text-memodex-muted">{{ $fr->cards_count }} cards</span>
-                                <a href="{{ route('admin.frames.edit', $fr) }}" class="px-2.5 py-1 rounded bg-memodex-raised hover:bg-memodex-soft border border-memodex-border text-xs text-memodex-text">
-                                    Edit
-                                </a>
+                            <div class="flex items-center gap-3 flex-shrink-0">
+                                <span class="text-xs font-mono text-[#6D7A8D] tabular-nums">{{ $fr->cards_count }} cards</span>
+                                <a href="{{ route('admin.frames.edit', $fr) }}" class="memodex-btn-secondary text-xs px-3 py-1.5">Edit</a>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <p class="p-6 text-sm text-[#9DAABD]">No outer frames configured yet.</p>
+                    @endforelse
                 </div>
             </div>
 
-            <!-- Recent Collectors -->
-            <div class="lg:col-span-5 p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
+            <div class="lg:col-span-5 space-y-4">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-sm font-bold text-memodex-text">Recent Collectors</h2>
-                        <p class="text-[11px] text-memodex-muted">Newly registered members.</p>
-                    </div>
-                    <a href="{{ route('admin.users.index') }}" class="text-xs text-memodex-primary hover:underline">
-                        View All &rarr;
-                    </a>
+                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Recent Collectors</h2>
+                    <a href="{{ route('admin.users.index') }}" class="text-xs font-medium text-[#69AFFF] hover:underline">View All &rarr;</a>
                 </div>
 
-                <div class="divide-y divide-memodex-border/60">
-                    @foreach ($recentUsers as $u)
-                        <div class="py-3 flex items-center justify-between">
-                            <div>
-                                <p class="text-xs font-semibold text-memodex-text">{{ $u->name }}</p>
-                                <p class="text-[10px] text-memodex-muted">{{ $u->email }}</p>
+                <div class="rounded-2xl bg-[#17243A]/70 border border-[#C8D2DF]/10 divide-y divide-[#C8D2DF]/[0.07]">
+                    @forelse ($recentUsers as $u)
+                        <div class="p-4 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-[#F3F5F8] truncate">{{ $u->name }}</p>
+                                <p class="text-xs text-[#6D7A8D] truncate">{{ $u->email }}</p>
                             </div>
-                            <div class="text-right">
-                                <span class="px-2 py-0.5 rounded text-[10px] font-mono {{ $u->is_admin ? 'bg-amber-400/10 text-amber-300 border border-amber-400/30 font-bold' : 'bg-memodex-raised text-memodex-muted' }}">
-                                    {{ $u->is_admin ? 'ADMIN' : 'COLLECTOR' }}
+                            <div class="text-right flex-shrink-0">
+                                <span class="text-xs font-medium {{ $u->is_admin ? 'text-[#D4B36A]' : 'text-[#9DAABD]' }}">
+                                    {{ $u->is_admin ? 'Admin' : 'Collector' }}
                                 </span>
-                                <p class="text-[9px] font-mono text-memodex-subtle mt-0.5">{{ $u->created_at->format('M d, Y') }}</p>
+                                <p class="text-[11px] font-mono text-[#6D7A8D] mt-0.5">{{ $u->created_at->format('M d, Y') }}</p>
                             </div>
                         </div>
-                    @endforeach
+                    @empty
+                        <p class="p-6 text-sm text-[#9DAABD]">No collectors registered.</p>
+                    @endforelse
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Recent Archived Cards Table -->
-        <div class="p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
-            <h2 class="text-sm font-bold text-memodex-text">Recently Archived Pokémon Cards</h2>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-memodex-raised text-[10px] font-mono uppercase text-memodex-subtle border-b border-memodex-border">
-                        <tr>
-                            <th class="py-2.5 px-3">Card</th>
-                            <th class="py-2.5 px-3">Card Number</th>
-                            <th class="py-2.5 px-3">Collector</th>
-                            <th class="py-2.5 px-3">Outer Frame</th>
-                            <th class="py-2.5 px-3">Date</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-memodex-border/60">
-                        @foreach ($recentCards as $rc)
-                            <tr class="hover:bg-memodex-soft/30 transition-colors">
-                                <td class="py-2.5 px-3 font-semibold text-memodex-text">
-                                    {{ $rc->display_name }}
-                                </td>
-                                <td class="py-2.5 px-3 font-mono font-bold text-memodex-primary">
-                                    {{ $rc->card_number }}
-                                </td>
-                                <td class="py-2.5 px-3 text-memodex-muted">
-                                    {{ $rc->user?->name ?? '—' }}
-                                </td>
-                                <td class="py-2.5 px-3">
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-mono border"
-                                          style="background-color: {{ $rc->frame->config['outer_bg'] ?? '#141D2B' }}; color: {{ $rc->frame->config['accent_color'] ?? '#83B9F2' }}; border-color: {{ $rc->frame->config['border_primary'] ?? '#3D4F66' }};">
-                                        {{ $rc->frame->name ?? 'Classic' }}
-                                    </span>
-                                </td>
-                                <td class="py-2.5 px-3 text-memodex-subtle font-mono text-[11px]">
-                                    {{ $rc->created_at->format('M d, Y • H:i') }}
-                                </td>
+        <!-- Recently Archived Cards Table -->
+        <section class="space-y-4 pt-4 border-t border-[#C8D2DF]/[0.08]">
+            <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Recent Platform Activity</h2>
+            <div class="rounded-2xl border border-[#C8D2DF]/10 bg-[#17243A]/70 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#1D293B]/80 text-xs font-medium text-[#9DAABD] border-b border-[#C8D2DF]/10">
+                            <tr>
+                                <th class="py-3 px-4">Card</th>
+                                <th class="py-3 px-4">Serial</th>
+                                <th class="py-3 px-4">Collector</th>
+                                <th class="py-3 px-4">Frame</th>
+                                <th class="py-3 px-4">Archived</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody class="divide-y divide-[#C8D2DF]/[0.07]">
+                            @forelse ($recentCards as $rc)
+                                @php $fc = $rc->frame?->config ?? []; @endphp
+                                <tr class="hover:bg-[#1D293B]/50 transition-colors">
+                                    <td class="py-3 px-4 font-medium text-[#F3F5F8]">{{ $rc->display_name }}</td>
+                                    <td class="py-3 px-4 font-mono text-xs text-[#69AFFF] tabular-nums">{{ $rc->card_number }}</td>
+                                    <td class="py-3 px-4 text-[#9DAABD]">{{ $rc->user?->name ?? '—' }}</td>
+                                    <td class="py-3 px-4">
+                                        <span class="inline-flex items-center gap-2 text-xs text-[#C8D2DF]">
+                                            <span class="w-2 h-2 rounded-full border" style="background-color: {{ $fc['border_primary'] ?? '#3D4F66' }}; border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></span>
+                                            {{ $rc->frame?->name ?? 'Classic Frame' }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-xs text-[#6D7A8D] font-mono">{{ $rc->created_at->format('M d, Y · H:i') }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="py-6 px-4 text-center text-sm text-[#6D7A8D]">No cards archived yet.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </section>
     </div>
 </x-app-layout>

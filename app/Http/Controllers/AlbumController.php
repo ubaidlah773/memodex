@@ -23,7 +23,7 @@ class AlbumController extends Controller
         $albums = $user->albums()
             ->withCount('cards')
             ->with(['cards' => function ($q) {
-                $q->with('photo')->take(4);
+                $q->with(['photo', 'frame'])->take(4);
             }])
             ->latest('updated_at')
             ->paginate(12);
@@ -55,14 +55,14 @@ class AlbumController extends Controller
         }
 
         $album->load(['cards' => function ($q) {
-            $q->with(['photo', 'template']);
+            $q->with(['photo', 'frame', 'template']);
         }, 'activeSharedLink']);
 
         // Cards available to add that aren't already in this album
         $existingCardIds = $album->cards->pluck('id')->toArray();
         $availableCards = Auth::user()->cards()
             ->whereNotIn('id', $existingCardIds)
-            ->with(['photo', 'template'])
+            ->with(['photo', 'frame', 'template'])
             ->latest()
             ->get();
 

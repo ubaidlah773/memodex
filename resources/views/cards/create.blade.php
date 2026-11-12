@@ -1,283 +1,429 @@
 <x-app-layout>
-    <x-slot name="title">Archive Card — MEMODEX</x-slot>
+    <x-slot name="title">Upload &amp; Frame Cards — MEMODEX</x-slot>
+
+    @php
+        $defaultFrame = $frames->firstWhere('slug', 'classic') ?? $frames->first();
+        $defaultCfg = $defaultFrame?->config ?? [];
+    @endphp
 
     <div x-data="{
         mode: '{{ $mode ?? 'automatic' }}',
-        selectedFrameId: '{{ $frames->firstWhere('slug', 'classic')?->id ?? ($frames->first()?->id ?? 1) }}',
-        selectedFrameSlug: '{{ $frames->firstWhere('slug', 'classic')?->slug ?? ($frames->first()?->slug ?? 'classic') }}',
-        selectedFrameName: '{{ $frames->firstWhere('slug', 'classic')?->name ?? 'Classic Frame' }}',
-        selectedFrameColor: '{{ $frames->firstWhere('slug', 'classic')?->config['border_primary'] ?? '#3D4F66' }}',
-        selectedFrameAccent: '{{ $frames->firstWhere('slug', 'classic')?->config['accent_color'] ?? '#83B9F2' }}',
+        selectedFrameId: '{{ $defaultFrame?->id ?? '' }}',
+        selectedFrameSlug: '{{ $defaultFrame?->slug ?? 'classic' }}',
+        selectedFrameName: '{{ addslashes($defaultFrame?->name ?? 'Classic Frame') }}',
+        selectedOuterBg: '{{ $defaultCfg['outer_bg'] ?? '#0F1622' }}',
+        selectedPrimary: '{{ $defaultCfg['border_primary'] ?? '#3D4F66' }}',
+        selectedInner: '{{ $defaultCfg['border_inner'] ?? '#202E40' }}',
+        selectedAccent: '{{ $defaultCfg['accent_color'] ?? '#69AFFF' }}',
+        selectedLabel: '{{ addslashes($defaultCfg['label'] ?? 'CLASSIC ARCHIVE') }}',
         selectedPhotoId: '{{ $selectedPhoto ? $selectedPhoto->id : ($photos->first() ? $photos->first()->id : '') }}',
         photoThumbUrl: '{{ $selectedPhoto ? route('media.photo.thumbnail', $selectedPhoto) : ($photos->first() ? route('media.photo.thumbnail', $photos->first()) : '') }}',
-        name: '{{ $selectedPhoto ? pathinfo($selectedPhoto->original_name, PATHINFO_FILENAME) : '' }}',
+        name: '{{ $selectedPhoto ? addslashes(pathinfo($selectedPhoto->original_name, PATHINFO_FILENAME)) : '' }}',
         albumId: '',
-        filesCount: 0,
-        updateFrame(id, slug, name, primary, accent) {
-            this.selectedFrameId = id;
+
+        // Batch upload state
+        batchFiles: [],
+        dragging: false,
+        batchError: '',
+        uploading: false,
+        uploadProgress: 0,
+        uploadSuccess: false,
+        manualDragging: false,
+        manualSubmitting: false,
+
+        updateFrame(id, slug, name, outerBg, primary, inner, accent, label) {
+            this.selectedFrameId = String(id);
             this.selectedFrameSlug = slug;
             this.selectedFrameName = name;
-            this.selectedFrameColor = primary;
-            this.selectedFrameAccent = accent;
+            this.selectedOuterBg = outerBg;
+            this.selectedPrimary = primary;
+            this.selectedInner = inner;
+            this.selectedAccent = accent;
+            this.selectedLabel = label;
         },
         selectPhoto(id, url, originalName) {
-            this.selectedPhotoId = id;
+            this.selectedPhotoId = String(id);
             this.photoThumbUrl = url;
             if (!this.name) {
                 this.name = originalName.replace(/\.[^/.]+$/, '');
             }
         },
-        handleBatchFiles(e) {
-            this.filesCount = e.target.files.length;
+        addBatchFiles(fileList) {
+            this.batchError = '';
+            const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+            const maxBytes = 15 * 1024 * 1024;
+            for (const file of fileList) {
+                if (!allowed.includes(file.type)) {
+                    this.batchError = file.name + ' is not a supported format (JPEG, PNG, WebP only).';
+                    continue;
+                }
+                if (file.size > maxBytes) {
+                    this.batchError = file.name + ' exceeds the 15 MB per-file limit.';
+                    continue;
+                }
+                this.batchFiles.push({
+                    file,
+                    name: file.name,
+                    sizeLabel: (file.size / 1024).toFixed(0) + ' KB',
+                    previewUrl: URL.createObjectURL(file)
+                });
+            }
+        },
+        removeBatchFile(idx) {
+            const item = this.batchFiles[idx];
+            if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl);
+            this.batchFiles.splice(idx, 1);
+        },
+        handleBatchDrop(e) {
+            this.dragging = false;
+            if (e.dataTransfer?.files?.length) {
+                this.addBatchFiles(e.dataTransfer.files);
+            }
+        },
+        handleManualFile(file) {
+            if (!file) return;
+            this.selectedPhotoId = '';
+            this.photoThumbUrl = URL.createObjectURL(file);
+            if (!this.name) {
+                this.name = file.name.replace(/\.[^/.]+$/, '');
+            }
+        },
+        submitBatchUpload() {
+            if (this.batchFiles.length === 0 || this.uploading) return;
+            this.batchError = '';
+            this.uploading = true;
+            this.uploadProgress = 0;
+
+            const fd = new FormData();
+            fd.append('_token', document.querySelector('meta[name=csrf-token]').content);
+            if (this.selectedFrameId) fd.append('frame_id', this.selectedFrameId);
+            if (this.albumId) fd.append('album_id', this.albumId);
+            this.batchFiles.forEach(item => fd.append('photos[]', item.file));
+
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route('cards.store') }}', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+
+            xhr.upload.onprogress = (evt) => {
+                if (evt.lengthComputable) {
+                    this.uploadProgress = Math.round((evt.loaded / evt.total) * 100);
+                }
+            };
+            xhr.onload = () => {
+                try {
+                    const res = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300 && res.success) {
+                        this.uploadSuccess = true;
+                        this.uploadProgress = 100;
+                        window.location.href = res.redirect || '{{ route('pokedex.index') }}';
+                        return;
+                    }
+                    this.batchError = res.error || res.message || 'Upload failed. Please verify your files.';
+                } catch {
+                    this.batchError = 'Unexpected server response (' + xhr.status + ').';
+                }
+                this.uploading = false;
+            };
+            xhr.onerror = () => {
+                this.batchError = 'Network error while uploading cards.';
+                this.uploading = false;
+            };
+            xhr.send(fd);
         }
-    }" class="space-y-6">
+    }" class="space-y-8">
 
-        <!-- Top Header & Mode Toggle -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-memodex-border">
+        <!-- Page Header & Mode Switcher -->
+        <section class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-5 border-b border-[#C8D2DF]/[0.08]">
             <div>
-                <span class="text-[11px] font-mono tracking-widest uppercase text-memodex-primary">Collection Archiver</span>
-                <h1 class="text-2xl font-bold tracking-tight text-memodex-text mt-1">Add Pokémon Cards</h1>
-                <p class="text-xs text-memodex-muted mt-0.5">
-                    Original Pokémon card artwork and text remain 100% unaltered. Choose an archival outer frame to complete your display.
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">Upload &amp; Frame Cards</h1>
+                <p class="text-sm text-[#9DAABD] mt-1">
+                    Original card artwork, text, and proportions are never cropped or modified. Only an outer display frame is added.
                 </p>
             </div>
 
-            <!-- Mode Selector Switch -->
-            <div class="flex items-center gap-1 p-1 bg-memodex-panel border border-memodex-border rounded-lg self-start sm:self-auto text-xs font-medium">
-                <button type="button" @click="mode = 'automatic'" :class="mode === 'automatic' ? 'bg-memodex-soft text-memodex-primary font-semibold shadow-sm' : 'text-memodex-muted hover:text-memodex-text'" class="px-3.5 py-1.5 rounded transition-all">
-                    Automatic Mode (Batch)
+            <div class="inline-flex items-center p-1 bg-[#17243A] border border-[#C8D2DF]/10 rounded-xl text-xs font-medium self-start md:self-auto">
+                <button type="button"
+                        @click="mode = 'automatic'"
+                        :class="mode === 'automatic' ? 'bg-[#263449] text-[#F3F5F8] shadow-sm' : 'text-[#9DAABD] hover:text-[#F3F5F8]'"
+                        class="px-4 py-2 rounded-lg transition-colors">
+                    Batch Upload
                 </button>
-                <button type="button" @click="mode = 'manual'" :class="mode === 'manual' ? 'bg-memodex-soft text-memodex-primary font-semibold shadow-sm' : 'text-memodex-muted hover:text-memodex-text'" class="px-3.5 py-1.5 rounded transition-all">
-                    Manual Mode (Single)
+                <button type="button"
+                        @click="mode = 'manual'"
+                        :class="mode === 'manual' ? 'bg-[#263449] text-[#F3F5F8] shadow-sm' : 'text-[#9DAABD] hover:text-[#F3F5F8]'"
+                        class="px-4 py-2 rounded-lg transition-colors">
+                    Single Card Studio
                 </button>
             </div>
-        </div>
+        </section>
 
-        <!-- Authenticity Notice Banner -->
-        <div class="p-3.5 rounded-lg border border-memodex-primary/30 bg-memodex-soft/60 flex items-start gap-3">
-            <svg class="w-5 h-5 text-memodex-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
-            <div class="text-xs text-memodex-text space-y-0.5">
-                <p class="font-semibold text-memodex-primary">100% Authentic Card Integrity Guarantee</p>
-                <p class="text-memodex-muted leading-relaxed">
-                    MEMODEX preserves your uploaded Pokémon cards exactly as they are. No cropping, no AI manipulation, and no alteration of artwork or game text. The system only adds an outer decorative display frame.
-                </p>
+        @if ($frames->isEmpty())
+            <div class="p-4 rounded-xl bg-[#E5B567]/10 border border-[#E5B567]/30 text-sm text-[#E5B567]">
+                No outer display frames are currently seeded in the database. Please add or seed at least one frame in <code class="font-mono">card_frames</code> before saving cards.
             </div>
-        </div>
+        @endif
 
-        <!-- ========================================== -->
-        <!-- MODE 1: AUTOMATIC MODE (Batch Upload)     -->
-        <!-- ========================================== -->
-        <div x-show="mode === 'automatic'" x-transition class="space-y-6">
-            <form method="POST" action="{{ route('cards.store') }}" enctype="multipart/form-data" class="space-y-6">
-                @csrf
-                <input type="hidden" name="frame_id" :value="selectedFrameId">
+        <!-- ============================================== -->
+        <!-- MODE 1: BATCH UPLOAD (AUTOMATIC MODE)         -->
+        <!-- ============================================== -->
+        <section x-show="mode === 'automatic'" x-cloak class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <!-- Left: Dropzone + Live Thumbnail Queue -->
+            <div class="lg:col-span-7 space-y-5">
+                <div @dragover.prevent="dragging = true"
+                     @dragleave.prevent="dragging = false"
+                     @drop.prevent="handleBatchDrop($event)"
+                     :class="dragging ? 'border-[#69AFFF] bg-[#1D293B]' : 'border-[#2D3C53] bg-[#17243A]/60 hover:border-[#3E5474]'"
+                     class="relative border-2 border-dashed rounded-2xl p-8 sm:p-10 text-center transition-colors">
+                    <input type="file"
+                           multiple
+                           accept="image/png,image/jpeg,image/webp"
+                           @change="addBatchFiles($event.target.files); $event.target.value = ''"
+                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
 
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    <!-- Dropzone -->
-                    <div class="lg:col-span-7 space-y-4">
-                        <div class="p-6 rounded-xl border-2 border-dashed border-memodex-border hover:border-memodex-primary/60 bg-memodex-panel transition-colors text-center relative group">
-                            <input type="file" name="photos[]" multiple accept="image/png,image/jpeg,image/webp" @change="handleBatchFiles($event)" required
-                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-
-                            <div class="space-y-3 pointer-events-none">
-                                <div class="w-12 h-12 mx-auto rounded-full bg-memodex-raised border border-memodex-border flex items-center justify-center text-memodex-primary group-hover:scale-105 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-sm font-semibold text-memodex-text">Drag &amp; drop Pokémon card images here</h3>
-                                    <p class="text-xs text-memodex-muted mt-1">Upload one or multiple card photos (PNG, JPEG, WebP up to 15MB each)</p>
-                                </div>
-                                <div class="pt-2 inline-flex items-center gap-2 px-4 py-2 rounded bg-memodex-soft text-memodex-primary text-xs font-medium">
-                                    <span x-show="filesCount === 0">Browse files from computer</span>
-                                    <span x-show="filesCount > 0" x-text="filesCount + ' card image(s) selected'"></span>
-                                </div>
-                            </div>
+                    <div class="space-y-3 pointer-events-none">
+                        <div class="w-12 h-12 mx-auto rounded-xl bg-[#101827] border border-[#C8D2DF]/15 flex items-center justify-center text-[#69AFFF]">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
                         </div>
-
-                        <!-- Optional Binder Selector -->
-                        @if ($albums->count() > 0)
-                        <div class="p-4 rounded-xl border border-memodex-border bg-memodex-panel flex items-center justify-between">
-                            <div>
-                                <label for="album_id_auto" class="block text-xs font-semibold text-memodex-text">Archive directly into Binder (Optional)</label>
-                                <p class="text-[11px] text-memodex-muted">Organize this batch into a specific collection binder.</p>
-                            </div>
-                            <select id="album_id_auto" name="album_id" class="bg-memodex-bg border border-memodex-border rounded-lg px-3 py-1.5 text-xs text-memodex-text focus:border-memodex-primary">
-                                <option value="">No Binder (Pokédex only)</option>
-                                @foreach ($albums as $alb)
-                                    <option value="{{ $alb->id }}">{{ $alb->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        @endif
-                    </div>
-
-                    <!-- Frame Selection for Batch -->
-                    <div class="lg:col-span-5 p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
                         <div>
-                            <span class="text-[11px] font-mono uppercase text-memodex-subtle tracking-wider">Outer Display Frame</span>
-                            <h3 class="text-sm font-semibold text-memodex-text mt-0.5">Select Batch Outer Frame</h3>
-                            <p class="text-[11px] text-memodex-muted mt-0.5">The selected frame will be applied to all cards in this batch. You can switch frames individually later.</p>
+                            <p class="font-display text-base font-semibold text-[#F3F5F8]">Drop Pokémon card images here</p>
+                            <p class="text-sm text-[#9DAABD] mt-1">Or click to select multiple PNG, JPEG, or WebP files (up to 15 MB each)</p>
                         </div>
-
-                        <div class="space-y-2">
-                            @foreach ($frames as $fr)
-                                <button type="button"
-                                        @click="updateFrame('{{ $fr->id }}', '{{ $fr->slug }}', '{{ $fr->name }}', '{{ $fr->config['border_primary'] ?? '#3D4F66' }}', '{{ $fr->config['accent_color'] ?? '#83B9F2' }}')"
-                                        :class="selectedFrameId == '{{ $fr->id }}' ? 'border-memodex-primary bg-memodex-soft/80 ring-1 ring-memodex-primary' : 'border-memodex-border bg-memodex-bg hover:border-memodex-border-hover'"
-                                        class="w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-4 h-4 rounded-full border shadow-sm" style="background-color: {{ $fr->config['border_primary'] ?? '#3D4F66' }}; border-color: {{ $fr->config['accent_color'] ?? '#83B9F2' }};"></div>
-                                        <div>
-                                            <p class="text-xs font-semibold text-memodex-text">{{ $fr->name }}</p>
-                                            <p class="text-[10px] text-memodex-muted">{{ $fr->description }}</p>
-                                        </div>
-                                    </div>
-                                    <span x-show="selectedFrameId == '{{ $fr->id }}'" class="text-memodex-primary font-bold text-xs">&#10003;</span>
-                                </button>
-                            @endforeach
-                        </div>
-
-                        <button type="submit" class="w-full mt-4 py-2.5 px-4 rounded-lg bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg font-semibold text-xs tracking-wide transition-colors shadow">
-                            Archive All to Pokédex &rarr;
-                        </button>
                     </div>
                 </div>
-            </form>
-        </div>
 
-        <!-- ========================================== -->
-        <!-- MODE 2: MANUAL MODE (Single Card Studio)  -->
-        <!-- ========================================== -->
-        <div x-show="mode === 'manual'" x-transition class="space-y-6">
-            <form method="POST" action="{{ route('cards.store') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <!-- Error Feedback -->
+                <div x-show="batchError" x-cloak class="p-3.5 rounded-xl bg-[#EB6F75]/10 border border-[#EB6F75]/35 text-sm text-[#EB6F75]" x-text="batchError"></div>
+
+                <!-- Upload Progress Feedback -->
+                <div x-show="uploading" x-cloak class="p-4 rounded-xl bg-[#17243A] border border-[#C8D2DF]/15 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-medium text-[#F3F5F8]" x-text="uploadSuccess ? 'Archived! Redirecting to Pokédex...' : 'Uploading & rendering outer frames...'"></span>
+                        <span class="font-mono text-[#69AFFF] tabular-nums" x-text="uploadProgress + '%'"></span>
+                    </div>
+                    <div class="w-full h-2 rounded-full bg-[#101827] overflow-hidden">
+                        <div class="h-full bg-[#69AFFF] transition-all duration-150" :style="`width: ${uploadProgress}%`"></div>
+                    </div>
+                </div>
+
+                <!-- Queued Files 63:88 Thumbnail Preview Strip -->
+                <div x-show="batchFiles.length > 0" x-cloak class="space-y-3">
+                    <div class="flex items-center justify-between text-xs text-[#9DAABD]">
+                        <span class="font-medium" x-text="batchFiles.length + ' card image(s) queued'"></span>
+                        <button type="button" @click="batchFiles = []" class="text-[#EB6F75] hover:underline">Clear queue</button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                        <template x-for="(item, index) in batchFiles" :key="index">
+                            <div class="relative bg-[#17243A] border border-[#C8D2DF]/10 rounded-xl overflow-hidden flex flex-col">
+                                <div class="aspect-card card-stage p-1.5 flex items-center justify-center relative">
+                                    <img :src="item.previewUrl" :alt="item.name" class="w-full h-full object-contain">
+                                    <button type="button"
+                                            @click="removeBatchFile(index)"
+                                            class="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-[#101827]/90 border border-[#C8D2DF]/20 text-[#9DAABD] hover:text-[#EB6F75] flex items-center justify-center text-xs font-bold"
+                                            title="Remove">
+                                        &times;
+                                    </button>
+                                </div>
+                                <div class="px-2.5 py-2 border-t border-[#C8D2DF]/[0.08]">
+                                    <p class="text-xs font-medium text-[#F3F5F8] truncate" x-text="item.name"></p>
+                                    <p class="text-[11px] font-mono text-[#6D7A8D]" x-text="item.sizeLabel"></p>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Outer Frame & Binder Assignment -->
+            <div class="lg:col-span-5 bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 space-y-6">
+                <div>
+                    <h2 class="font-display text-base font-semibold text-[#F3F5F8]">Select Batch Outer Frame</h2>
+                    <p class="text-xs text-[#9DAABD] mt-1">Applied around every card in this batch without touching original artwork.</p>
+                </div>
+
+                <div class="space-y-2">
+                    @foreach ($frames as $fr)
+                        @php $fc = $fr->config ?? []; @endphp
+                        <button type="button"
+                                @click="updateFrame('{{ $fr->id }}', '{{ $fr->slug }}', '{{ addslashes($fr->name) }}', '{{ $fc['outer_bg'] ?? '#0F1622' }}', '{{ $fc['border_primary'] ?? '#3D4F66' }}', '{{ $fc['border_inner'] ?? '#202E40' }}', '{{ $fc['accent_color'] ?? '#69AFFF' }}', '{{ addslashes($fc['label'] ?? $fr->name) }}')"
+                                :class="selectedFrameId === '{{ $fr->id }}' ? 'bg-[#263449] border-[#69AFFF] ring-1 ring-[#69AFFF]/40' : 'bg-[#101827]/70 border-[#C8D2DF]/10 hover:border-[#C8D2DF]/30'"
+                                class="w-full text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-7 h-9 rounded border-2 flex-shrink-0 p-1 flex items-center justify-center"
+                                     style="background-color: {{ $fc['outer_bg'] ?? '#0F1622' }}; border-color: {{ $fc['border_primary'] ?? '#3D4F66' }};">
+                                    <div class="w-full h-full rounded-[2px] border" style="border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></div>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-[#F3F5F8] truncate">{{ $fr->name }}</p>
+                                    <p class="text-xs text-[#6D7A8D] truncate">{{ $fr->description }}</p>
+                                </div>
+                            </div>
+                            <svg x-show="selectedFrameId === '{{ $fr->id }}'" x-cloak class="w-4 h-4 text-[#69AFFF] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                            </svg>
+                        </button>
+                    @endforeach
+                </div>
+
+                @if ($albums->count() > 0)
+                <div class="pt-4 border-t border-[#C8D2DF]/[0.08]">
+                    <label for="album_id_auto" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Assign to Binder (Optional)</label>
+                    <select id="album_id_auto" x-model="albumId" class="memodex-select py-2">
+                        <option value="">No Binder (Pokédex only)</option>
+                        @foreach ($albums as $alb)
+                            <option value="{{ $alb->id }}">{{ $alb->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                <button type="button"
+                        @click="submitBatchUpload()"
+                        :disabled="batchFiles.length === 0 || uploading || !selectedFrameId"
+                        class="memodex-btn-primary w-full py-3">
+                    <span x-show="!uploading" x-text="batchFiles.length > 0 ? 'Frame & Archive ' + batchFiles.length + ' Card(s)' : 'Select Card Images to Begin'"></span>
+                    <span x-show="uploading" x-cloak>Processing Archive...</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- ============================================== -->
+        <!-- MODE 2: SINGLE CARD STUDIO (MANUAL MODE)       -->
+        <!-- ============================================== -->
+        <section x-show="mode === 'manual'" x-cloak>
+            <form method="POST"
+                  action="{{ route('cards.store') }}"
+                  enctype="multipart/form-data"
+                  @submit="manualSubmitting = true"
+                  class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 @csrf
                 <input type="hidden" name="frame_id" :value="selectedFrameId">
                 <input type="hidden" name="photo_id" :value="selectedPhotoId">
 
-                <!-- Left Column: Live Frame & Card Preview (63:88 aspect ratio) -->
-                <div class="lg:col-span-5 flex flex-col items-center lg:sticky lg:top-24">
-                    <div class="w-full max-w-sm">
-                        <div class="text-[11px] font-mono text-memodex-subtle uppercase mb-2 flex items-center justify-between">
-                            <span>Interactive Outer Frame Preview</span>
-                            <span class="text-memodex-primary" x-text="selectedFrameName"></span>
-                        </div>
+                <!-- Left: Sticky Live Frame Comparison Stage (63:88) -->
+                <div class="lg:col-span-5 flex flex-col items-center lg:sticky lg:top-8 space-y-3">
+                    <div class="w-full max-w-[360px] flex items-center justify-between text-xs">
+                        <span class="text-[#9DAABD] font-medium">Live Outer Frame Preview</span>
+                        <span class="font-medium" :style="`color: ${selectedAccent};`" x-text="selectedFrameName"></span>
+                    </div>
 
-                        <!-- Outer Frame Container -->
-                        <div class="w-full aspect-card rounded-xl border-2 overflow-hidden relative shadow-2xl flex flex-col justify-between p-3 select-none transition-all duration-200"
-                             :style="`border-color: ${selectedFrameColor}; background-color: #0F1622;`">
+                    <div class="w-full max-w-[360px] aspect-card rounded-2xl border-2 p-3 flex flex-col justify-between shadow-2xl transition-colors duration-200 select-none"
+                         :style="`border-color: ${selectedPrimary}; background-color: ${selectedOuterBg};`">
+                        <div class="w-full h-full rounded-xl border p-2.5 flex flex-col justify-between"
+                             :style="`border-color: ${selectedInner};`">
+                            <!-- Card Artwork Window (100% object-contain) -->
+                            <div class="w-full flex-1 rounded-lg bg-[#0B111C] overflow-hidden flex items-center justify-center border border-[#C8D2DF]/10">
+                                <template x-if="photoThumbUrl">
+                                    <img :src="photoThumbUrl" alt="Selected Pokémon Card" class="w-full h-full object-contain">
+                                </template>
+                                <template x-if="!photoThumbUrl">
+                                    <div class="text-center p-6 space-y-2">
+                                        <svg class="w-8 h-8 mx-auto text-[#6D7A8D]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5z"/></svg>
+                                        <p class="text-xs text-[#9DAABD]">Choose or drop a card image</p>
+                                    </div>
+                                </template>
+                            </div>
 
-                            <!-- Subtle Outer Matting Bevel -->
-                            <div class="w-full h-full rounded border flex flex-col justify-between p-2 relative"
-                                 :style="`border-color: ${selectedFrameAccent};`">
-
-                                <!-- Pokémon Card Artwork Window (100% Unaltered Aspect Ratio) -->
-                                <div class="w-full flex-1 rounded bg-[#0A0E14] overflow-hidden flex items-center justify-center relative border border-memodex-border">
-                                    <template x-if="photoThumbUrl">
-                                        <img :src="photoThumbUrl" alt="Pokémon Card" class="max-w-full max-h-full object-contain">
-                                    </template>
-                                    <template x-if="!photoThumbUrl">
-                                        <div class="text-center p-6 space-y-2">
-                                            <svg class="w-8 h-8 mx-auto text-memodex-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                            <p class="text-xs text-memodex-muted font-mono">Select or upload a Pokémon card</p>
-                                        </div>
-                                    </template>
-                                </div>
-
-                                <!-- Collector Bottom Plaque (On Outer Frame) -->
-                                <div class="mt-2 px-2 py-1.5 rounded bg-[#0A0F16] border border-memodex-border flex items-center justify-between text-[9px] font-mono">
-                                    <span class="text-memodex-subtle">MEMODEX ARCHIVE</span>
-                                    <span class="font-bold" :style="`color: ${selectedFrameAccent};`" x-text="selectedFrameName.toUpperCase()"></span>
-                                    <span class="text-memodex-text">MDX-NEXT</span>
-                                </div>
+                            <!-- Collector Bottom Plaque -->
+                            <div class="mt-2.5 px-3 py-1.5 rounded bg-[#0A0F16] border flex items-center justify-between text-[9px] font-mono"
+                                 :style="`border-color: ${selectedInner};`">
+                                <span class="text-[#6D7A8D]">MEMODEX</span>
+                                <span class="font-semibold uppercase truncate mx-2" :style="`color: ${selectedAccent};`" x-text="selectedLabel"></span>
+                                <span class="text-[#F3F5F8]">MDX-NEXT</span>
                             </div>
                         </div>
-
-                        <p class="text-[10px] text-center text-memodex-subtle mt-2 font-mono">
-                            Archival composite output: 744 &times; 1039 px PNG
-                        </p>
                     </div>
+
+                    <p class="text-xs text-[#6D7A8D] font-mono">Export resolution: 744 &times; 1039 px PNG (63:88)</p>
                 </div>
 
-                <!-- Right Column: Card & Frame Controls -->
-                <div class="lg:col-span-7 space-y-6">
-                    <!-- Step 1: Select or Upload Source Card -->
-                    <div class="p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
+                <!-- Right: Studio Controls -->
+                <div class="lg:col-span-7 space-y-7">
+                    <!-- Step 1: Source Card -->
+                    <section class="pb-6 border-b border-[#C8D2DF]/[0.08] space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-mono uppercase text-memodex-subtle tracking-wider">
-                                1. Source Pokémon Card Image
-                            </span>
-                            <span class="text-[11px] text-memodex-muted">Unmodified Original</span>
+                            <h2 class="font-display text-base font-semibold text-[#F3F5F8]">1. Source Card Image</h2>
+                            <span class="text-xs text-[#5CC99B]">Preserved Unaltered</span>
                         </div>
 
-                        <!-- Direct File Upload Input -->
-                        <div class="p-4 rounded-lg border border-dashed border-memodex-border bg-memodex-bg flex items-center gap-4">
-                            <input type="file" name="photo_file" accept="image/png,image/jpeg,image/webp"
-                                   @change="if ($event.target.files[0]) { photoThumbUrl = URL.createObjectURL($event.target.files[0]); if (!name) name = $event.target.files[0].name.replace(/\.[^/.]+$/, ''); }"
-                                   class="text-xs text-memodex-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-memodex-soft file:text-memodex-primary hover:file:bg-memodex-raised cursor-pointer">
-                        </div>
+                        <label @dragover.prevent="manualDragging = true"
+                               @dragleave.prevent="manualDragging = false"
+                               @drop.prevent="manualDragging = false; if ($event.dataTransfer.files[0]) { $refs.manualFileInput.files = $event.dataTransfer.files; handleManualFile($event.dataTransfer.files[0]); }"
+                               :class="manualDragging ? 'border-[#69AFFF] bg-[#1D293B]' : 'border-[#2D3C53] bg-[#17243A]/60 hover:border-[#3E5474]'"
+                               class="flex items-center justify-between gap-4 p-4 rounded-xl border border-dashed cursor-pointer transition-colors">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 rounded-lg bg-[#101827] border border-[#C8D2DF]/10 flex items-center justify-center text-[#69AFFF] flex-shrink-0">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-medium text-[#F3F5F8] truncate">Choose or drop a Pokémon card file</p>
+                                    <p class="text-xs text-[#6D7A8D]">PNG, JPEG, or WebP up to 15 MB</p>
+                                </div>
+                            </div>
+                            <span class="memodex-btn-secondary text-xs px-3 py-1.5 flex-shrink-0">Browse</span>
+                            <input x-ref="manualFileInput" type="file" name="photo_file" accept="image/png,image/jpeg,image/webp" class="sr-only"
+                                   @change="handleManualFile($event.target.files[0])">
+                        </label>
 
                         @if ($photos->count() > 0)
-                        <div>
-                            <span class="text-[11px] text-memodex-muted block mb-2">Or pick from your previously uploaded photos:</span>
-                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2 max-h-36 overflow-y-auto p-1 bg-memodex-bg rounded-lg border border-memodex-border">
+                        <div class="space-y-2">
+                            <span class="text-xs text-[#9DAABD] block">Or reuse from My Collection (Original Assets):</span>
+                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-2.5 max-h-48 overflow-y-auto p-2 bg-[#17243A]/50 rounded-xl border border-[#C8D2DF]/10">
                                 @foreach ($photos as $p)
                                     <button type="button"
                                             @click="selectPhoto('{{ $p->id }}', '{{ route('media.photo.thumbnail', $p) }}', '{{ addslashes($p->original_name) }}')"
-                                            :class="selectedPhotoId == '{{ $p->id }}' ? 'ring-2 ring-memodex-primary border-transparent' : 'opacity-70 hover:opacity-100'"
-                                            class="aspect-square rounded border border-memodex-border overflow-hidden relative transition-all">
-                                        <img src="{{ route('media.photo.thumbnail', $p) }}" alt="{{ $p->original_name }}" class="w-full h-full object-cover">
+                                            :class="selectedPhotoId === '{{ $p->id }}' ? 'ring-2 ring-[#69AFFF] border-transparent opacity-100' : 'border-[#C8D2DF]/10 opacity-75 hover:opacity-100'"
+                                            class="aspect-card card-stage rounded-lg border overflow-hidden p-1 transition-all">
+                                        <img src="{{ route('media.photo.thumbnail', $p) }}" alt="{{ $p->original_name }}" class="w-full h-full object-contain">
                                     </button>
                                 @endforeach
                             </div>
                         </div>
                         @endif
-                    </div>
+                    </section>
 
-                    <!-- Step 2: Choose Frame -->
-                    <div class="p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
-                        <span class="text-xs font-mono uppercase text-memodex-subtle tracking-wider">
-                            2. Choose Outer Decorative Frame
-                        </span>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Step 2: Frame Selection -->
+                    <section class="pb-6 border-b border-[#C8D2DF]/[0.08] space-y-4">
+                        <h2 class="font-display text-base font-semibold text-[#F3F5F8]">2. Choose Outer Display Frame</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             @foreach ($frames as $fr)
+                                @php $fc = $fr->config ?? []; @endphp
                                 <button type="button"
-                                        @click="updateFrame('{{ $fr->id }}', '{{ $fr->slug }}', '{{ $fr->name }}', '{{ $fr->config['border_primary'] ?? '#3D4F66' }}', '{{ $fr->config['accent_color'] ?? '#83B9F2' }}')"
-                                        :class="selectedFrameId == '{{ $fr->id }}' ? 'border-memodex-primary bg-memodex-soft/80 ring-1 ring-memodex-primary' : 'border-memodex-border bg-memodex-bg hover:border-memodex-border-hover'"
-                                        class="text-left p-3 rounded-lg border transition-all flex items-center gap-3">
-                                    <div class="w-5 h-5 rounded-full border shadow-sm flex-shrink-0" style="background-color: {{ $fr->config['border_primary'] ?? '#3D4F66' }}; border-color: {{ $fr->config['accent_color'] ?? '#83B9F2' }};"></div>
-                                    <div class="overflow-hidden">
-                                        <p class="text-xs font-semibold text-memodex-text truncate">{{ $fr->name }}</p>
-                                        <p class="text-[10px] text-memodex-muted truncate">{{ $fr->description }}</p>
+                                        @click="updateFrame('{{ $fr->id }}', '{{ $fr->slug }}', '{{ addslashes($fr->name) }}', '{{ $fc['outer_bg'] ?? '#0F1622' }}', '{{ $fc['border_primary'] ?? '#3D4F66' }}', '{{ $fc['border_inner'] ?? '#202E40' }}', '{{ $fc['accent_color'] ?? '#69AFFF' }}', '{{ addslashes($fc['label'] ?? $fr->name) }}')"
+                                        :class="selectedFrameId === '{{ $fr->id }}' ? 'bg-[#263449] border-[#69AFFF] ring-1 ring-[#69AFFF]/40' : 'bg-[#17243A]/70 border-[#C8D2DF]/10 hover:border-[#C8D2DF]/30'"
+                                        class="text-left p-3 rounded-xl border transition-all flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="w-7 h-9 rounded border-2 flex-shrink-0 p-1 flex items-center justify-center"
+                                             style="background-color: {{ $fc['outer_bg'] ?? '#0F1622' }}; border-color: {{ $fc['border_primary'] ?? '#3D4F66' }};">
+                                            <div class="w-full h-full rounded-[2px] border" style="border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></div>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-medium text-[#F3F5F8] truncate">{{ $fr->name }}</p>
+                                            <p class="text-xs text-[#6D7A8D] truncate">{{ $fc['label'] ?? $fr->slug }}</p>
+                                        </div>
                                     </div>
+                                    <svg x-show="selectedFrameId === '{{ $fr->id }}'" x-cloak class="w-4 h-4 text-[#69AFFF] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+                                    </svg>
                                 </button>
                             @endforeach
                         </div>
-                    </div>
+                    </section>
 
-                    <!-- Step 3: Optional Collection Label & Album -->
-                    <div class="p-6 rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
-                        <span class="text-xs font-mono uppercase text-memodex-subtle tracking-wider">
-                            3. Catalog Label &amp; Binder (Optional)
-                        </span>
-
+                    <!-- Step 3: Optional Metadata -->
+                    <section class="space-y-4">
+                        <h2 class="font-display text-base font-semibold text-[#F3F5F8]">3. Catalog Details (Optional)</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="name_manual" class="block text-xs text-memodex-muted mb-1 font-medium">Card Label / Name</label>
-                                <input type="text" id="name_manual" name="name" x-model="name" placeholder="e.g. Charizard Holo 1st Edition" maxlength="80"
-                                       class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-2 text-xs text-memodex-text focus:border-memodex-primary">
-                                <span class="text-[10px] text-memodex-subtle mt-1 block">Catalog label for indexing; does not alter card image.</span>
+                                <label for="name_manual" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Card Name / Label</label>
+                                <input type="text" id="name_manual" name="name" x-model="name" placeholder="e.g. Charizard Base Set" maxlength="80" class="memodex-input">
+                                <span class="text-[11px] text-[#6D7A8D] mt-1 block">Used only for indexing; never printed on card artwork.</span>
                             </div>
 
                             @if ($albums->count() > 0)
                             <div>
-                                <label for="album_id_manual" class="block text-xs text-memodex-muted mb-1 font-medium">Add to Binder</label>
-                                <select id="album_id_manual" name="album_id" x-model="albumId"
-                                        class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-2 text-xs text-memodex-text focus:border-memodex-primary">
+                                <label for="album_id_manual" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Add to Binder</label>
+                                <select id="album_id_manual" name="album_id" x-model="albumId" class="memodex-select">
                                     <option value="">None (Pokédex only)</option>
                                     @foreach ($albums as $alb)
                                         <option value="{{ $alb->id }}">{{ $alb->name }}</option>
@@ -286,20 +432,18 @@
                             </div>
                             @endif
                         </div>
-                    </div>
+                    </section>
 
-                    <!-- Submit Actions -->
-                    <div class="flex items-center justify-between pt-2">
-                        <a href="{{ route('pokedex.index') }}" class="px-4 py-2 text-xs text-memodex-muted hover:text-memodex-text">
-                            Cancel
-                        </a>
-
-                        <button type="submit" class="inline-flex items-center px-6 py-2.5 rounded-md text-xs font-semibold bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg transition-colors shadow">
-                            Save &amp; Frame Card &rarr;
+                    <!-- Submit Row -->
+                    <div class="pt-4 border-t border-[#C8D2DF]/[0.08] flex items-center justify-between">
+                        <a href="{{ route('pokedex.index') }}" class="memodex-btn-ghost">Cancel</a>
+                        <button type="submit" :disabled="manualSubmitting || !selectedFrameId" class="memodex-btn-primary px-6 py-2.5">
+                            <span x-show="!manualSubmitting">Save &amp; Frame Card</span>
+                            <span x-show="manualSubmitting" x-cloak>Rendering Frame...</span>
                         </button>
                     </div>
                 </div>
             </form>
-        </div>
+        </section>
     </div>
 </x-app-layout>

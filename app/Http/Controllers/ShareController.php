@@ -69,7 +69,7 @@ class ShareController extends Controller
 
         $album = $sharedLink->album;
         $album->load(['cards' => function ($q) {
-            $q->with('template');
+            $q->with(['photo', 'frame', 'template']);
         }]);
 
         return view('sharing.show', compact('album', 'sharedLink'));

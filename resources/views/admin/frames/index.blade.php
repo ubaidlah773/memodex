@@ -1,81 +1,84 @@
 <x-app-layout>
-    <x-slot name="title">Manage Frames — Admin MEMODEX</x-slot>
+    <x-slot name="title">Outer Frame Management — Admin MEMODEX</x-slot>
 
-    <div class="space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-memodex-border">
-            <div>
-                <a href="{{ route('admin.dashboard') }}" class="text-xs font-mono text-memodex-subtle hover:text-memodex-primary">&larr; Back to Admin Center</a>
-                <h1 class="text-2xl font-bold tracking-tight text-memodex-text mt-1">Outer Frame Management</h1>
-                <p class="text-xs text-memodex-muted mt-0.5">
-                    Configure active states, border widths, and aesthetic palettes for each of the 7 archival frames.
-                </p>
+    <div class="space-y-8">
+        <section class="pb-5 border-b border-[#C8D2DF]/[0.08]">
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-sm text-[#9DAABD] hover:text-[#F3F5F8] transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                <span>Back to Admin Center</span>
+            </a>
+            <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8] mt-2">Outer Frame Management</h1>
+            <p class="text-sm text-[#9DAABD] mt-1">Configure border widths, color tokens, and availability for outer card frames.</p>
+        </section>
+
+        @if ($frames->isEmpty())
+            <x-empty-state title="No outer frames configured" description="Run the CardFrameSeeder to populate the 7 archival frame styles." icon="card" />
+        @else
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                @foreach ($frames as $fr)
+                    @php $fc = $fr->config ?? []; @endphp
+                    <article class="p-6 rounded-2xl border border-[#C8D2DF]/10 bg-[#17243A] flex flex-col justify-between gap-5">
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="flex items-center gap-3.5">
+                                    <div class="w-9 h-12 rounded-md border-2 p-1 flex-shrink-0"
+                                         style="background-color: {{ $fc['outer_bg'] ?? '#0F1622' }}; border-color: {{ $fc['border_primary'] ?? '#3D4F66' }};">
+                                        <div class="w-full h-full rounded-[2px] border" style="border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></div>
+                                    </div>
+                                    <div>
+                                        <h2 class="font-display text-base font-semibold text-[#F3F5F8]">{{ $fr->name }}</h2>
+                                        <p class="text-xs font-mono text-[#6D7A8D]">{{ $fr->slug }}</p>
+                                    </div>
+                                </div>
+                                <span class="inline-flex items-center gap-1.5 text-xs font-medium {{ $fr->is_active ? 'text-[#5CC99B]' : 'text-[#EB6F75]' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $fr->is_active ? 'bg-[#5CC99B]' : 'bg-[#EB6F75]' }}"></span>
+                                    {{ $fr->is_active ? 'Active' : 'Disabled' }}
+                                </span>
+                            </div>
+
+                            <p class="text-sm text-[#9DAABD] leading-relaxed">{{ $fr->description }}</p>
+
+                            <dl class="pt-3 border-t border-[#C8D2DF]/[0.08] grid grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <dt class="text-[#6D7A8D]">Primary Border</dt>
+                                    <dd class="font-mono text-[#F3F5F8] flex items-center gap-1.5 mt-1">
+                                        <span class="w-3 h-3 rounded border border-[#C8D2DF]/20" style="background-color: {{ $fc['border_primary'] ?? '#3D4F66' }};"></span>
+                                        {{ $fc['border_primary'] ?? '#3D4F66' }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[#6D7A8D]">Accent Token</dt>
+                                    <dd class="font-mono text-[#F3F5F8] flex items-center gap-1.5 mt-1">
+                                        <span class="w-3 h-3 rounded border border-[#C8D2DF]/20" style="background-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></span>
+                                        {{ $fc['accent_color'] ?? '#69AFFF' }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[#6D7A8D]">Border Width</dt>
+                                    <dd class="font-mono text-[#9DAABD] mt-1">{{ $fc['border_width'] ?? 32 }} px</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-[#6D7A8D]">Usage</dt>
+                                    <dd class="font-mono text-[#9DAABD] mt-1">{{ $fr->cards_count }} cards</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="pt-4 border-t border-[#C8D2DF]/[0.08] flex items-center justify-between">
+                            <form method="POST" action="{{ route('admin.frames.toggle', $fr) }}">
+                                @csrf
+                                <button type="submit" class="text-xs font-medium hover:underline {{ $fr->is_active ? 'text-[#EB6F75]' : 'text-[#5CC99B]' }}">
+                                    {{ $fr->is_active ? 'Disable Frame' : 'Enable Frame' }}
+                                </button>
+                            </form>
+
+                            <a href="{{ route('admin.frames.edit', $fr) }}" class="memodex-btn-secondary text-xs px-3.5 py-2">
+                                Configure &rarr;
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
             </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach ($frames as $fr)
-                <div class="p-5 rounded-xl border border-memodex-border bg-memodex-panel flex flex-col justify-between space-y-4">
-                    <div>
-                        <!-- Header with Color Swatches -->
-                        <div class="flex items-start justify-between gap-3">
-                            <div>
-                                <h3 class="text-sm font-bold text-memodex-text">{{ $fr->name }}</h3>
-                                <p class="text-[10px] font-mono text-memodex-subtle">{{ $fr->slug }}</p>
-                            </div>
-                            <span class="px-2 py-0.5 rounded text-[9px] font-mono font-medium {{ $fr->is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/10 text-rose-400 border border-rose-500/30' }}">
-                                {{ $fr->is_active ? 'ACTIVE' : 'DISABLED' }}
-                            </span>
-                        </div>
-
-                        <p class="text-xs text-memodex-muted mt-2 leading-relaxed">
-                            {{ $fr->description }}
-                        </p>
-
-                        <!-- Color Config Overview -->
-                        <div class="mt-4 p-3 rounded-lg bg-memodex-bg border border-memodex-border/60 space-y-2 text-xs">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] text-memodex-subtle">Primary Border</span>
-                                <div class="flex items-center gap-1.5 font-mono text-[11px] text-memodex-text">
-                                    <div class="w-3.5 h-3.5 rounded border" style="background-color: {{ $fr->config['border_primary'] ?? '#3D4F66' }};"></div>
-                                    <span>{{ $fr->config['border_primary'] ?? '#3D4F66' }}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] text-memodex-subtle">Inner Border</span>
-                                <div class="flex items-center gap-1.5 font-mono text-[11px] text-memodex-text">
-                                    <div class="w-3.5 h-3.5 rounded border" style="background-color: {{ $fr->config['border_inner'] ?? '#202E40' }};"></div>
-                                    <span>{{ $fr->config['border_inner'] ?? '#202E40' }}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-[11px] text-memodex-subtle">Accent Color</span>
-                                <div class="flex items-center gap-1.5 font-mono text-[11px] text-memodex-text">
-                                    <div class="w-3.5 h-3.5 rounded border" style="background-color: {{ $fr->config['accent_color'] ?? '#83B9F2' }};"></div>
-                                    <span>{{ $fr->config['accent_color'] ?? '#83B9F2' }}</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between pt-1 border-t border-memodex-border/40 text-[10px] font-mono text-memodex-subtle">
-                                <span>Border Width: {{ $fr->config['border_width'] ?? 32 }}px</span>
-                                <span>Cards: {{ $fr->cards_count }}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="pt-2 flex items-center justify-between border-t border-memodex-border/60">
-                        <form method="POST" action="{{ route('admin.frames.toggle', $fr) }}">
-                            @csrf
-                            <button type="submit" class="text-xs hover:underline {{ $fr->is_active ? 'text-rose-400' : 'text-emerald-400' }}">
-                                {{ $fr->is_active ? 'Deactivate' : 'Activate' }}
-                            </button>
-                        </form>
-
-                        <a href="{{ route('admin.frames.edit', $fr) }}" class="px-3 py-1.5 rounded bg-memodex-raised hover:bg-memodex-soft border border-memodex-border text-xs font-medium text-memodex-text transition-colors">
-                            Edit Config &rarr;
-                        </a>
-                    </div>
-                </div>
-            @endforeach
-        </div>
+        @endif
     </div>
 </x-app-layout>

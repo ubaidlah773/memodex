@@ -1,39 +1,37 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
-        @csrf
+    <x-slot name="title">Choose New Password — MEMODEX</x-slot>
 
-        <!-- Password Reset Token -->
+    <div class="mb-5">
+        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Set a new password</h2>
+        <p class="text-sm text-[#9DAABD] mt-1">Choose a strong password for your collection archive.</p>
+    </div>
+
+    <form method="POST" action="{{ route('password.store') }}" class="space-y-4">
+        @csrf
         <input type="hidden" name="token" value="{{ $request->route('token') }}">
 
-        <!-- Email Address -->
         <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+            <x-input-label for="email" value="Email Address" />
+            <input id="email" type="email" name="email" value="{{ old('email', $request->email) }}" required autofocus autocomplete="username" class="memodex-input">
+            <x-input-error :messages="$errors->get('email')" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div>
+            <x-input-label for="password" value="New Password" />
+            <input id="password" type="password" name="password" required autocomplete="new-password" class="memodex-input">
+            <x-input-error :messages="$errors->get('password')" />
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div>
+            <x-input-label for="password_confirmation" value="Confirm Password" />
+            <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password" class="memodex-input">
+            <x-input-error :messages="$errors->get('password_confirmation')" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
+        <div class="pt-2">
+            <button type="submit" class="memodex-btn-primary w-full">
+                Reset Password
+            </button>
         </div>
     </form>
 </x-guest-layout>

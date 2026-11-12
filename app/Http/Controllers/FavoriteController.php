@@ -15,7 +15,7 @@ class FavoriteController extends Controller
     {
         $cards = Auth::user()->cards()
             ->where('is_favorite', true)
-            ->with(['photo', 'template'])
+            ->with(['photo', 'frame', 'template'])
             ->latest()
             ->paginate(12);
 

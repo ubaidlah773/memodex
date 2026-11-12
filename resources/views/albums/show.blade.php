@@ -1,174 +1,323 @@
 <x-app-layout>
     <x-slot name="title">{{ $album->name }} — MEMODEX Binder</x-slot>
 
-    <div class="space-y-8" x-data="{ showShareModal: false, showAddCardModal: false }">
-        <!-- Breadcrumb & Header -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-memodex-border">
-            <div>
-                <a href="{{ route('albums.index') }}" class="text-xs font-mono text-memodex-subtle hover:text-memodex-primary">&larr; Back to Binders</a>
-                <div class="flex items-center gap-2 mt-1">
-                    <h1 class="text-2xl font-bold tracking-tight text-memodex-text">{{ $album->name }}</h1>
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-memodex-raised border border-memodex-border text-memodex-subtle uppercase">
-                        {{ $album->visibility }}
-                    </span>
+    <div class="space-y-8"
+         x-data="{
+            showShareModal: false,
+            showAddCardModal: false,
+            showEditModal: false,
+            showDeleteModal: false,
+            reorderMode: false,
+            savingOrder: false,
+            copied: false,
+            cardsOrder: @js($album->cards->map(fn($c) => [
+                'id' => $c->id,
+                'name' => $c->display_name,
+                'number' => $c->card_number,
+                'img' => $c->effectiveFramedPath() ? route('media.card.framed', $c) : ($c->photo ? route('media.photo.thumbnail', $c->photo) : ''),
+            ])->values()),
+            moveCard(index, delta) {
+                const target = index + delta;
+                if (target < 0 || target >= this.cardsOrder.length) return;
+                const copy = [...this.cardsOrder];
+                const [item] = copy.splice(index, 1);
+                copy.splice(target, 0, item);
+                this.cardsOrder = copy;
+            },
+            async saveOrder() {
+                this.savingOrder = true;
+                try {
+                    const res = await fetch('{{ route('albums.reorder', $album) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                        },
+                        body: JSON.stringify({ card_ids: this.cardsOrder.map(c => c.id) })
+                    });
+                    if (res.ok) {
+                        window.location.reload();
+                    } else {
+                        window.dispatchEvent(new CustomEvent('memodex-toast', { detail: { message: 'Could not save binder order.', type: 'error' } }));
+                    }
+                } catch {
+                    window.dispatchEvent(new CustomEvent('memodex-toast', { detail: { message: 'Network error saving order.', type: 'error' } }));
+                } finally {
+                    this.savingOrder = false;
+                }
+            },
+            copyShareLink(url) {
+                navigator.clipboard.writeText(url).then(() => {
+                    this.copied = true;
+                    window.dispatchEvent(new CustomEvent('memodex-toast', { detail: { message: 'Share link copied to clipboard.' } }));
+                    setTimeout(() => this.copied = false, 2000);
+                });
+            }
+         }">
+
+        <!-- Breadcrumb & Folio Header -->
+        <section class="pb-6 border-b border-[#C8D2DF]/[0.08] space-y-4">
+            <a href="{{ route('albums.index') }}" class="inline-flex items-center gap-2 text-sm text-[#9DAABD] hover:text-[#F3F5F8] transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                <span>Back to Albums</span>
+            </a>
+
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">
+                <div class="space-y-1.5 max-w-2xl">
+                    <div class="flex items-center gap-2.5 text-xs">
+                        <span class="inline-flex items-center gap-1.5 font-medium {{ $album->isPublic() ? 'text-[#5CC99B]' : 'text-[#9DAABD]' }}">
+                            <span class="w-1.5 h-1.5 rounded-full {{ $album->isPublic() ? 'bg-[#5CC99B]' : 'bg-[#6D7A8D]' }}"></span>
+                            {{ $album->isPublic() ? 'Public Share Enabled' : 'Private Binder' }}
+                        </span>
+                        <span class="text-[#6D7A8D]">&middot;</span>
+                        <span class="font-mono text-[#9DAABD] tabular-nums">{{ $album->cards->count() }} {{ $album->cards->count() === 1 ? 'card' : 'cards' }}</span>
+                    </div>
+                    <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">{{ $album->name }}</h1>
+                    @if ($album->description)
+                        <p class="text-sm text-[#9DAABD] leading-relaxed">{{ $album->description }}</p>
+                    @endif
                 </div>
-                <p class="text-xs text-memodex-muted mt-1 max-w-xl">
-                    {{ $album->description ?: 'No binder description added yet.' }}
-                </p>
-            </div>
 
-            <!-- Action Buttons -->
-            <div class="flex items-center gap-2.5">
-                <button type="button" @click="showShareModal = true" class="inline-flex items-center px-3.5 py-2 rounded-md text-xs font-medium border border-memodex-border bg-memodex-raised hover:bg-memodex-soft text-memodex-text transition-colors">
-                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                    Share Binder
-                </button>
-                <button type="button" @click="showAddCardModal = true" class="inline-flex items-center px-3.5 py-2 rounded-md text-xs font-semibold bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg transition-colors">
-                    + Add Card
-                </button>
+                <div class="flex flex-wrap items-center gap-2.5 flex-shrink-0">
+                    @if ($album->cards->count() > 1)
+                        <button type="button" @click="reorderMode = !reorderMode" class="memodex-btn-secondary text-xs px-3.5 py-2">
+                            <span x-text="reorderMode ? 'Cancel Reorder' : 'Reorder Cards'"></span>
+                        </button>
+                    @endif
+                    <button type="button" @click="showEditModal = true" class="memodex-btn-secondary text-xs px-3.5 py-2">
+                        Edit Details
+                    </button>
+                    <button type="button" @click="showShareModal = true" class="memodex-btn-secondary text-xs px-3.5 py-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>
+                        <span>Share</span>
+                    </button>
+                    <button type="button" @click="showAddCardModal = true" class="memodex-btn-primary text-xs px-4 py-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                        <span>Add Cards</span>
+                    </button>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Cards in this Binder -->
+        <!-- Binder Card Layout -->
         @if ($album->cards->count() === 0)
-            <div class="p-12 text-center rounded-xl border border-memodex-border bg-memodex-panel space-y-4 max-w-lg mx-auto">
-                <div class="w-12 h-12 mx-auto rounded-full bg-memodex-raised border border-memodex-border flex items-center justify-center text-memodex-subtle">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"/></svg>
-                </div>
-                <div>
-                    <h3 class="text-sm font-semibold text-memodex-text">This binder has no cards</h3>
-                    <p class="text-xs text-memodex-muted mt-1">Select cards from your collection or generate new ones to place in this binder.</p>
-                </div>
-                <button type="button" @click="showAddCardModal = true" class="inline-flex items-center px-4 py-2 rounded bg-memodex-primary text-memodex-bg text-xs font-semibold">
-                    Add Cards to Binder
-                </button>
-            </div>
+            <x-empty-state
+                title="This binder is empty"
+                description="Add framed cards from your Pokédex to assemble your binder spread."
+                icon="binder">
+                <x-slot:actions>
+                    <button type="button" @click="showAddCardModal = true" class="memodex-btn-primary">
+                        Add Cards from Pokédex
+                    </button>
+                </x-slot:actions>
+            </x-empty-state>
         @else
-            <div class="space-y-3">
-                <div class="flex items-center justify-between text-xs font-mono text-memodex-subtle">
-                    <span>{{ $album->cards->count() }} Cards in Binder</span>
-                    <span>Ordered layout</span>
+            <!-- Reorder Mode Spread -->
+            <div x-show="reorderMode" x-cloak class="space-y-4">
+                <div class="p-4 rounded-xl bg-[#17243A] border border-[#69AFFF]/30 flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-sm text-[#F3F5F8]">Arrange binder pocket sequence using the move controls, then save order.</p>
+                    <button type="button" @click="saveOrder()" :disabled="savingOrder" class="memodex-btn-primary text-xs px-4 py-2">
+                        <span x-show="!savingOrder">Save Binder Order</span>
+                        <span x-show="savingOrder" x-cloak>Saving...</span>
+                    </button>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                    @foreach ($album->cards as $card)
-                        <div class="relative group">
-                            <x-card-tile :card="$card" />
-                            <!-- Quick Detach Button -->
-                            <form method="POST" action="{{ route('albums.cards.remove', [$album, $card]) }}" onsubmit="return confirm('Remove card from this binder? (The card remains in your Pokédex)');" class="absolute -top-1 -left-1 z-30">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="w-5 h-5 rounded-full bg-memodex-bg border border-memodex-border text-memodex-subtle hover:text-memodex-danger hover:border-memodex-danger flex items-center justify-center text-xs font-bold transition-colors" title="Remove from binder">
-                                    &times;
-                                </button>
-                            </form>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <template x-for="(c, idx) in cardsOrder" :key="c.id">
+                        <div class="bg-[#1D293B] border border-[#C8D2DF]/15 rounded-xl overflow-hidden flex flex-col">
+                            <div class="aspect-card card-stage p-2 flex items-center justify-center relative">
+                                <img :src="c.img" :alt="c.name" class="w-full h-full object-contain">
+                                <span class="absolute top-2 left-2 px-2 py-0.5 rounded bg-[#101827]/90 border border-[#C8D2DF]/20 font-mono text-[11px] text-[#F3F5F8]" x-text="'#' + (idx + 1)"></span>
+                            </div>
+                            <div class="p-3 border-t border-[#C8D2DF]/10 space-y-2">
+                                <p class="text-xs font-semibold text-[#F3F5F8] truncate" x-text="c.name"></p>
+                                <div class="flex items-center justify-between gap-2">
+                                    <button type="button" @click="moveCard(idx, -1)" :disabled="idx === 0" class="memodex-btn-secondary text-xs px-2.5 py-1 flex-1 disabled:opacity-30">&larr;</button>
+                                    <button type="button" @click="moveCard(idx, 1)" :disabled="idx === cardsOrder.length - 1" class="memodex-btn-secondary text-xs px-2.5 py-1 flex-1 disabled:opacity-30">&rarr;</button>
+                                </div>
+                            </div>
                         </div>
-                    @endforeach
+                    </template>
                 </div>
+            </div>
+
+            <!-- Standard Binder Gallery -->
+            <div x-show="!reorderMode" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-5">
+                @foreach ($album->cards as $card)
+                    <div class="space-y-2">
+                        <x-card-tile :card="$card" />
+                        <form method="POST" action="{{ route('albums.cards.remove', [$album, $card]) }}" class="flex justify-end">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-[11px] text-[#6D7A8D] hover:text-[#EB6F75] transition-colors">
+                                Remove from binder
+                            </button>
+                        </form>
+                    </div>
+                @endforeach
             </div>
         @endif
 
-        <!-- Bottom Danger Zone -->
-        <div class="pt-8 border-t border-memodex-border flex items-center justify-between">
-            <span class="text-xs text-memodex-subtle">Deleting a binder will not delete any cards.</span>
-            <form method="POST" action="{{ route('albums.destroy', $album) }}" onsubmit="return confirm('Are you sure you want to delete binder &quot;{{ $album->name }}&quot;?');">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="text-xs text-memodex-danger hover:underline">
-                    Delete Binder
-                </button>
-            </form>
+        <!-- Danger Footer -->
+        <div class="pt-6 border-t border-[#C8D2DF]/[0.08] flex flex-wrap items-center justify-between gap-4">
+            <span class="text-xs text-[#6D7A8D]">Deleting a binder never removes cards from your Pokédex.</span>
+            <button type="button" @click="showDeleteModal = true" class="text-xs font-medium text-[#EB6F75] hover:underline">
+                Delete Binder
+            </button>
         </div>
 
-        <!-- Add Card Modal -->
-        <div x-show="showAddCardModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div @click.away="showAddCardModal = false" class="bg-memodex-panel border border-memodex-border rounded-xl p-6 max-w-xl w-full space-y-4">
-                <div class="flex items-center justify-between pb-2 border-b border-memodex-border">
-                    <h3 class="text-base font-bold text-memodex-text">Add Cards from Pokédex</h3>
-                    <button type="button" @click="showAddCardModal = false" class="text-memodex-subtle hover:text-memodex-text text-xl font-bold">&times;</button>
+        <!-- Add Cards Modal -->
+        <div x-show="showAddCardModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-[#070B14]/80 backdrop-blur-sm" @click="showAddCardModal = false"></div>
+            <div class="relative z-10 bg-[#1D293B] border border-[#C8D2DF]/15 rounded-2xl p-6 max-w-2xl w-full space-y-5 shadow-2xl">
+                <div class="flex items-center justify-between pb-3 border-b border-[#C8D2DF]/10">
+                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Add Cards from Pokédex</h2>
+                    <button type="button" @click="showAddCardModal = false" class="text-[#9DAABD] hover:text-[#F3F5F8] text-xl leading-none">&times;</button>
                 </div>
 
                 @if ($availableCards->count() === 0)
-                    <p class="text-xs text-memodex-muted py-4">All your existing cards are already in this binder, or you have not created any cards yet.</p>
+                    <p class="text-sm text-[#9DAABD] py-6 text-center">All your archived cards are already placed in this binder, or your Pokédex is empty.</p>
                 @else
-                    <div class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-72 overflow-y-auto p-2 bg-memodex-bg rounded border border-memodex-border">
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-[60vh] overflow-y-auto p-2 bg-[#101827] rounded-xl border border-[#C8D2DF]/10">
                         @foreach ($availableCards as $c)
-                            <form method="POST" action="{{ route('albums.cards.add', $album) }}" class="flex flex-col items-center">
+                            <form method="POST" action="{{ route('albums.cards.add', $album) }}">
                                 @csrf
                                 <input type="hidden" name="card_id" value="{{ $c->id }}">
-                                <button type="submit" class="w-full text-left p-1.5 rounded bg-memodex-panel hover:bg-memodex-raised border border-memodex-border transition-colors group">
-                                    <div class="w-full aspect-card rounded bg-memodex-bg overflow-hidden relative mb-1">
-                                        @if ($c->render_path)
-                                            <img src="{{ route('media.card.render', $c) }}" alt="{{ $c->name }}" class="w-full h-full object-cover">
+                                <button type="submit" class="w-full text-left p-2 rounded-xl bg-[#17243A] hover:bg-[#263449] border border-[#C8D2DF]/10 hover:border-[#69AFFF]/50 transition-all group">
+                                    <div class="w-full aspect-card card-stage rounded-lg overflow-hidden p-1 mb-2">
+                                        @if ($c->effectiveFramedPath())
+                                            <img src="{{ route('media.card.framed', $c) }}" alt="{{ $c->display_name }}" class="w-full h-full object-contain" loading="lazy">
                                         @elseif ($c->photo)
-                                            <img src="{{ route('media.photo.thumbnail', $c->photo) }}" alt="{{ $c->name }}" class="w-full h-full object-cover">
+                                            <img src="{{ route('media.photo.thumbnail', $c->photo) }}" alt="{{ $c->display_name }}" class="w-full h-full object-contain" loading="lazy">
                                         @endif
                                     </div>
-                                    <p class="text-[11px] font-semibold text-memodex-text truncate group-hover:text-memodex-primary">{{ $c->name }}</p>
-                                    <span class="text-[9px] font-mono text-memodex-subtle">+ Add</span>
+                                    <p class="text-xs font-medium text-[#F3F5F8] truncate group-hover:text-[#69AFFF]">{{ $c->display_name }}</p>
+                                    <p class="text-[11px] font-mono text-[#6D7A8D] mt-0.5">+ Add</p>
                                 </button>
                             </form>
                         @endforeach
                     </div>
                 @endif
 
-                <div class="flex justify-end pt-2">
-                    <button type="button" @click="showAddCardModal = false" class="px-4 py-2 text-xs text-memodex-muted hover:text-memodex-text">
-                        Close
-                    </button>
+                <div class="flex justify-end">
+                    <button type="button" @click="showAddCardModal = false" class="memodex-btn-secondary text-xs">Close</button>
                 </div>
             </div>
         </div>
 
-        <!-- Share Controlled Link Modal -->
-        <div x-show="showShareModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-            <div @click.away="showShareModal = false" class="bg-memodex-panel border border-memodex-border rounded-xl p-6 max-w-md w-full space-y-4">
-                <div class="flex items-center justify-between pb-2 border-b border-memodex-border">
-                    <h3 class="text-base font-bold text-memodex-text">Controlled Public Sharing</h3>
-                    <button type="button" @click="showShareModal = false" class="text-memodex-subtle hover:text-memodex-text text-xl font-bold">&times;</button>
+        <!-- Edit Binder Modal -->
+        <div x-show="showEditModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-[#070B14]/80 backdrop-blur-sm" @click="showEditModal = false"></div>
+            <div class="relative z-10 bg-[#1D293B] border border-[#C8D2DF]/15 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+                <div class="flex items-center justify-between pb-3 border-b border-[#C8D2DF]/10">
+                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Edit Binder Details</h2>
+                    <button type="button" @click="showEditModal = false" class="text-[#9DAABD] hover:text-[#F3F5F8] text-xl leading-none">&times;</button>
                 </div>
 
-                <p class="text-xs text-memodex-muted leading-relaxed">
-                    Sharing creates an unguessable token link to view <strong>only this binder</strong> in read-only mode. It never exposes your personal account, private files, or remaining Pokédex.
+                <form method="POST" action="{{ route('albums.update', $album) }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+                    <div>
+                        <label for="edit_name" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Binder Title</label>
+                        <input type="text" id="edit_name" name="name" value="{{ $album->name }}" required maxlength="80" class="memodex-input">
+                    </div>
+
+                    <div>
+                        <label for="edit_desc" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Description</label>
+                        <textarea id="edit_desc" name="description" rows="3" maxlength="300" class="memodex-input">{{ $album->description }}</textarea>
+                    </div>
+
+                    <div>
+                        <label for="edit_vis" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Visibility</label>
+                        <select id="edit_vis" name="visibility" class="memodex-select">
+                            <option value="private" {{ $album->visibility === 'private' ? 'selected' : '' }}>Private</option>
+                            <option value="public-link" {{ $album->visibility === 'public-link' ? 'selected' : '' }}>Public Link</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <button type="button" @click="showEditModal = false" class="memodex-btn-ghost text-xs">Cancel</button>
+                        <button type="submit" class="memodex-btn-primary text-xs px-5 py-2.5">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Controlled Share Modal -->
+        <div x-show="showShareModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-[#070B14]/80 backdrop-blur-sm" @click="showShareModal = false"></div>
+            <div class="relative z-10 bg-[#1D293B] border border-[#C8D2DF]/15 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+                <div class="flex items-center justify-between pb-3 border-b border-[#C8D2DF]/10">
+                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Share Binder</h2>
+                    <button type="button" @click="showShareModal = false" class="text-[#9DAABD] hover:text-[#F3F5F8] text-xl leading-none">&times;</button>
+                </div>
+
+                <p class="text-sm text-[#9DAABD] leading-relaxed">
+                    Creates a read-only link for <strong class="text-[#F3F5F8]">{{ $album->name }}</strong> only. Private files and other collections are never exposed.
                 </p>
 
                 @if ($album->activeSharedLink)
-                    <div class="p-4 rounded-lg bg-memodex-bg border border-memodex-border space-y-3">
-                        <span class="text-[10px] font-mono text-memodex-success uppercase font-semibold">Active Share Link</span>
+                    @php $shareUrl = route('shared.show', $album->activeSharedLink->token); @endphp
+                    <div class="p-4 rounded-xl bg-[#101827] border border-[#C8D2DF]/15 space-y-3">
+                        <span class="text-xs font-medium text-[#5CC99B] block">Active Share Link</span>
                         <div class="flex items-center gap-2">
-                            <input type="text" readonly value="{{ route('shared.show', $album->activeSharedLink->token) }}" id="shareUrlInput" class="w-full bg-memodex-panel border border-memodex-border rounded px-2.5 py-1.5 text-xs text-memodex-text font-mono select-all">
-                            <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('shareUrlInput').value); alert('Link copied to clipboard!');" class="px-3 py-1.5 bg-memodex-primary text-memodex-bg rounded text-xs font-semibold whitespace-nowrap">
-                                Copy
+                            <input type="text" readonly value="{{ $shareUrl }}" class="memodex-input py-2 font-mono text-xs select-all">
+                            <button type="button" @click="copyShareLink('{{ $shareUrl }}')" class="memodex-btn-primary text-xs px-3.5 py-2 whitespace-nowrap">
+                                <span x-text="copied ? 'Copied' : 'Copy'"></span>
                             </button>
                         </div>
-                        <div class="flex items-center justify-between text-[11px] text-memodex-subtle font-mono pt-1">
-                            <span>Status: Active</span>
-                            <form method="POST" action="{{ route('albums.share.revoke', [$album, $album->activeSharedLink]) }}" onsubmit="return confirm('Revoke this share link immediately?');">
+                        <div class="flex items-center justify-between text-xs text-[#6D7A8D] pt-1">
+                            <span>
+                                @if ($album->activeSharedLink->expires_at)
+                                    Expires {{ $album->activeSharedLink->expires_at->format('M d, Y') }}
+                                @else
+                                    No expiration
+                                @endif
+                            </span>
+                            <form method="POST" action="{{ route('albums.share.revoke', [$album, $album->activeSharedLink]) }}">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="text-memodex-danger hover:underline">
-                                    Revoke Access
-                                </button>
+                                <button type="submit" class="text-[#EB6F75] hover:underline font-medium">Revoke Link</button>
                             </form>
                         </div>
                     </div>
                 @else
                     <form method="POST" action="{{ route('albums.share', $album) }}" class="space-y-4">
                         @csrf
-                        <div class="p-4 rounded-lg bg-memodex-bg border border-memodex-border">
-                            <p class="text-xs text-memodex-muted">No active share link exists for this binder.</p>
+                        <div>
+                            <label for="expires_at" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Expiration Date (Optional)</label>
+                            <input type="date" id="expires_at" name="expires_at" min="{{ now()->addDay()->format('Y-m-d') }}" class="memodex-input">
                         </div>
-
-                        <button type="submit" class="w-full py-2.5 bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg text-xs font-semibold rounded transition-colors">
-                            Generate New Share Link
+                        <button type="submit" class="memodex-btn-primary w-full py-2.5 text-xs">
+                            Generate Public Share Link
                         </button>
                     </form>
                 @endif
 
-                <div class="flex justify-end pt-2">
-                    <button type="button" @click="showShareModal = false" class="px-4 py-2 text-xs text-memodex-muted hover:text-memodex-text">
-                        Done
-                    </button>
+                <div class="flex justify-end">
+                    <button type="button" @click="showShareModal = false" class="memodex-btn-ghost text-xs">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delete Binder Confirmation Modal -->
+        <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="fixed inset-0 bg-[#070B14]/80 backdrop-blur-sm" @click="showDeleteModal = false"></div>
+            <div class="relative z-10 bg-[#1D293B] border border-[#C8D2DF]/15 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+                <h3 class="font-display text-lg font-semibold text-[#F3F5F8]">Delete "{{ $album->name }}"?</h3>
+                <p class="text-sm text-[#9DAABD] leading-relaxed">
+                    This deletes the binder and revokes any shared links. All cards inside remain safe in your Pokédex.
+                </p>
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" @click="showDeleteModal = false" class="memodex-btn-secondary text-xs">Cancel</button>
+                    <form method="POST" action="{{ route('albums.destroy', $album) }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-4 py-2.5 rounded-lg bg-[#EB6F75] hover:bg-[#dc5b62] text-[#101827] text-xs font-semibold transition-colors">
+                            Delete Binder
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

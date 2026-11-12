@@ -1,51 +1,66 @@
-@props(['card'])
+@props(['card', 'showFavorite' => true])
 
-<div class="group relative flex flex-col bg-memodex-panel rounded-xl border border-memodex-border hover:border-memodex-border-hover overflow-hidden transition-all duration-200 shadow-md hover:shadow-xl">
-    <!-- Card Ratio Viewport (63:88) -->
-    <a href="{{ route('pokedex.show', $card) }}" class="block relative w-full aspect-card bg-[#0C1118] overflow-hidden cursor-pointer">
+@php
+    $frameConfig = $card->frame?->config ?? [];
+    $frameAccent = $frameConfig['accent_color'] ?? '#69AFFF';
+    $framePrimary = $frameConfig['border_primary'] ?? '#3D4F66';
+    $frameName = $card->frame?->name ?? 'Classic Frame';
+@endphp
+
+<article class="group relative flex flex-col bg-[#1D293B]/60 hover:bg-[#1D293B] rounded-xl border border-[#C8D2DF]/10 hover:border-[#69AFFF]/35 overflow-hidden card-collectible">
+    <!-- Pure, Unobstructed 63:88 Card Display Viewport -->
+    <a href="{{ route('pokedex.show', $card) }}"
+       class="block relative w-full aspect-card card-stage overflow-hidden p-1.5 sm:p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#69AFFF]"
+       aria-label="Inspect {{ $card->display_name }} ({{ $card->card_number }})">
         @if ($card->effectiveFramedPath())
-            <img src="{{ route('media.card.framed', $card) }}" alt="{{ $card->display_name }}" class="w-full h-full object-contain select-none transition-transform duration-200 group-hover:scale-[1.02]" loading="lazy">
+            <img src="{{ route('media.card.framed', $card) }}?v={{ $card->updated_at?->timestamp }}"
+                 alt="{{ $card->display_name }}"
+                 class="w-full h-full object-contain select-none transition-transform duration-200 group-hover:scale-[1.015]"
+                 loading="lazy">
         @elseif ($card->photo)
-            <img src="{{ route('media.photo.thumbnail', $card->photo) }}" alt="{{ $card->display_name }}" class="w-full h-full object-cover select-none" loading="lazy">
+            <img src="{{ route('media.photo.thumbnail', $card->photo) }}"
+                 alt="{{ $card->display_name }}"
+                 class="w-full h-full object-contain select-none transition-transform duration-200 group-hover:scale-[1.015]"
+                 loading="lazy">
         @else
-            <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center">
-                <span class="text-xs text-memodex-subtle font-mono">{{ $card->card_number }}</span>
+            <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center border border-dashed border-[#C8D2DF]/15 rounded-lg">
+                <span class="text-xs font-mono text-[#6D7A8D] tabular-nums">{{ $card->card_number }}</span>
             </div>
         @endif
-
-        <!-- Frame Badge Pill -->
-        <div class="absolute top-2 left-2 z-10">
-            @php
-                $frameConfig = $card->frame?->config ?? [];
-                $pillBg = $frameConfig['outer_bg'] ?? '#141D2B';
-                $pillColor = $frameConfig['accent_color'] ?? '#83B9F2';
-                $pillBorder = $frameConfig['border_primary'] ?? '#3D4F66';
-            @endphp
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-mono tracking-wider font-semibold border backdrop-blur-sm"
-                  style="background-color: {{ $pillBg }}ee; color: {{ $pillColor }}; border-color: {{ $pillBorder }};">
-                {{ $card->frame->name ?? 'Classic' }}
-            </span>
-        </div>
-
-        <!-- Quick Favorite Button -->
-        <form method="POST" action="{{ route('favorites.toggle', $card) }}" class="absolute top-2 right-2 z-20" @click.stop>
-            @csrf
-            <button type="submit" class="w-7 h-7 rounded-full bg-memodex-panel/85 hover:bg-memodex-panel border border-memodex-border flex items-center justify-center transition-colors {{ $card->is_favorite ? 'text-amber-400 bg-amber-400/10 border-amber-400/40' : 'text-memodex-subtle hover:text-memodex-text' }}" title="{{ $card->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}">
-                <svg class="w-3.5 h-3.5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-            </button>
-        </form>
     </a>
 
-    <!-- Card Info Strip -->
-    <div class="p-3 border-t border-memodex-border flex flex-col justify-between flex-1 bg-memodex-panel">
-        <div class="flex items-start justify-between gap-1 mb-1">
-            <a href="{{ route('pokedex.show', $card) }}" class="font-semibold text-xs text-memodex-text hover:text-memodex-primary truncate transition-colors" title="{{ $card->display_name }}">
+    <!-- Clean Editorial Metadata Strip (Zero Collision with Card Artwork) -->
+    <div class="px-3.5 py-3 border-t border-[#C8D2DF]/[0.08] flex flex-col gap-1.5">
+        <div class="flex items-start justify-between gap-2 min-w-0">
+            <a href="{{ route('pokedex.show', $card) }}"
+               class="text-sm font-semibold text-[#F3F5F8] hover:text-[#69AFFF] truncate transition-colors leading-snug"
+               title="{{ $card->display_name }}">
                 {{ $card->display_name }}
             </a>
+
+            @if ($showFavorite)
+            <form method="POST" action="{{ route('favorites.toggle', $card) }}" class="flex-shrink-0 -mt-0.5">
+                @csrf
+                <button type="submit"
+                        class="p-1 rounded-md transition-colors {{ $card->is_favorite ? 'text-[#D4B36A] hover:text-[#E5C880]' : 'text-[#6D7A8D] hover:text-[#C8D2DF]' }}"
+                        title="{{ $card->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}"
+                        aria-label="{{ $card->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}">
+                    @if ($card->is_favorite)
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    @else
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z"/></svg>
+                    @endif
+                </button>
+            </form>
+            @endif
         </div>
-        <div class="flex items-center justify-between text-[10px] font-mono text-memodex-subtle pt-1 border-t border-memodex-border/40">
-            <span class="font-bold text-memodex-text">{{ $card->card_number }}</span>
-            <span>{{ $card->created_at->format('M d, Y') }}</span>
+
+        <div class="flex items-center justify-between gap-2 text-xs text-[#6D7A8D] min-w-0">
+            <span class="font-mono tabular-nums text-[11px] text-[#9DAABD] whitespace-nowrap">{{ $card->card_number }}</span>
+            <span class="inline-flex items-center gap-1.5 min-w-0">
+                <span class="w-2 h-2 rounded-full flex-shrink-0 border" style="background-color: {{ $framePrimary }}; border-color: {{ $frameAccent }};"></span>
+                <span class="truncate text-[11px] text-[#9DAABD]">{{ str_replace(' Frame', '', $frameName) }}</span>
+            </span>
         </div>
     </div>
-</div>
+</article>

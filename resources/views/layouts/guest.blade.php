@@ -5,33 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'MEMODEX — Collectible Archive' }}</title>
+    <title>{{ $title ?? 'MEMODEX — Personal Trading Card Collection' }}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-memodex-bg text-memodex-text font-sans antialiased min-h-screen flex flex-col justify-center items-center p-4 selection:bg-memodex-primary selection:text-memodex-bg">
+<body class="bg-[#101827] text-[#F3F5F8] font-sans antialiased min-h-screen flex flex-col justify-center items-center px-4 py-10 selection:bg-[#69AFFF] selection:text-[#101827]">
 
-    <div class="w-full max-w-md space-y-6">
-        <!-- Brand -->
-        <div class="text-center space-y-2">
-            <div class="w-10 h-10 mx-auto rounded border border-memodex-primary/40 bg-memodex-raised flex items-center justify-center text-memodex-primary font-bold text-base tracking-wider shadow">
-                M
+    <div class="w-full max-w-[440px] space-y-8">
+        <!-- Refined Editorial Brand Header -->
+        <div class="flex flex-col items-center text-center space-y-3">
+            <x-brand-mark size="lg" />
+            <div>
+                <h1 class="font-display text-2xl font-bold tracking-[0.18em] text-[#F3F5F8]">MEMODEX</h1>
+                <p class="text-xs text-[#9DAABD] mt-1 tracking-wide">Personal Trading Card Archive</p>
             </div>
-            <h1 class="text-xl font-bold tracking-widest text-memodex-text">MEMODEX</h1>
-            <p class="text-xs text-memodex-subtle uppercase tracking-wider font-mono">Personal Collectible Archive</p>
         </div>
 
-        <!-- Auth Card Container -->
-        <div class="bg-memodex-panel border border-memodex-border rounded-xl p-8 shadow-2xl">
+        <!-- Form Surface -->
+        <div class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
             {{ $slot }}
         </div>
 
-        <p class="text-[11px] text-center text-memodex-subtle font-mono">
-            &copy; {{ date('Y') }} MEMODEX Archive &bull; Physical-Proportion Digital Cards
+        <p class="text-xs text-center text-[#6D7A8D]">
+            &copy; {{ date('Y') }} MEMODEX &middot; 63&times;88 mm Archival Preservation
         </p>
     </div>
 

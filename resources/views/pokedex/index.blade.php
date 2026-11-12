@@ -1,35 +1,87 @@
 <x-app-layout>
-    <x-slot name="title">Pokédex Archive — MEMODEX</x-slot>
+    <x-slot name="title">Pokédex — MEMODEX</x-slot>
 
-    <div class="space-y-6">
-        <!-- Header -->
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-memodex-border">
+    @php
+        $activeFilterCount = collect([$frameId, $albumId, $dateFilter])->filter()->count();
+    @endphp
+
+    <div class="space-y-6" x-data="{ filtersOpen: {{ $activeFilterCount > 0 ? 'true' : 'false' }} }">
+        <!-- Page Header -->
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#C8D2DF]/[0.08]">
             <div>
-                <span class="text-[11px] font-mono tracking-widest uppercase text-memodex-primary">Collection Catalog</span>
-                <h1 class="text-2xl font-bold tracking-tight text-memodex-text mt-1">Pokédex</h1>
-                <p class="text-xs text-memodex-muted mt-1">
-                    Complete archive of your authentic Pokémon cards with decorative outer frames ({{ $cards->total() }} total entries).
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">Pokédex</h1>
+                <p class="text-sm text-[#9DAABD] mt-1">
+                    {{ number_format($cards->total()) }} archived {{ $cards->total() === 1 ? 'card' : 'cards' }} in 63&times;88 mm archival mounts.
                 </p>
             </div>
-            <a href="{{ route('cards.create') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-semibold bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg transition-colors self-start sm:self-auto shadow">
-                + Add Pokémon Cards
+            <a href="{{ route('cards.create') }}" class="memodex-btn-primary self-start sm:self-auto">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                <span>Add Cards</span>
             </a>
-        </div>
+        </section>
 
-        <!-- Filter & Search Toolbar -->
-        <form method="GET" action="{{ route('pokedex.index') }}" class="p-4 rounded-xl bg-memodex-panel border border-memodex-border space-y-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
-                <!-- Search -->
-                <div class="lg:col-span-3">
-                    <label for="search" class="block text-[11px] font-mono text-memodex-subtle uppercase mb-1">Search Card</label>
-                    <input type="text" id="search" name="search" value="{{ $search }}" placeholder="Search by name, number..."
-                           class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-1.5 text-xs text-memodex-text placeholder:text-memodex-subtle focus:border-memodex-primary focus:ring-1 focus:ring-memodex-primary">
+        <!-- Compact Search, Filter & View Controls -->
+        <form method="GET" action="{{ route('pokedex.index') }}" class="space-y-3">
+            <input type="hidden" name="view" value="{{ $viewMode }}">
+
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
+                <!-- Search Field -->
+                <div class="relative flex-1 min-w-0">
+                    <svg class="w-4 h-4 text-[#6D7A8D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                    </svg>
+                    <input type="text"
+                           name="search"
+                           value="{{ $search }}"
+                           placeholder="Search by card name or MDX number..."
+                           class="w-full bg-[#17243A] border border-[#2D3C53] rounded-lg pl-10 pr-4 py-2 text-sm text-[#F3F5F8] placeholder:text-[#6D7A8D] focus:outline-none focus:border-[#69AFFF] focus:ring-1 focus:ring-[#69AFFF]">
                 </div>
 
-                <!-- Frame Filter -->
-                <div class="lg:col-span-2">
-                    <label for="frame_id" class="block text-[11px] font-mono text-memodex-subtle uppercase mb-1">Outer Frame</label>
-                    <select id="frame_id" name="frame_id" class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-1.5 text-xs text-memodex-text focus:border-memodex-primary focus:ring-1 focus:ring-memodex-primary">
+                <div class="flex items-center justify-between sm:justify-end gap-2.5">
+                    <!-- Filter Drawer Toggle -->
+                    <button type="button"
+                            @click="filtersOpen = !filtersOpen"
+                            class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium border transition-colors {{ $activeFilterCount > 0 ? 'bg-[#263449] border-[#69AFFF]/50 text-[#F3F5F8]' : 'bg-[#17243A] border-[#2D3C53] text-[#9DAABD] hover:text-[#F3F5F8]' }}">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg>
+                        <span>Filters</span>
+                        @if ($activeFilterCount > 0)
+                            <span class="w-5 h-5 rounded-full bg-[#69AFFF] text-[#101827] text-[11px] font-semibold flex items-center justify-center">{{ $activeFilterCount }}</span>
+                        @endif
+                    </button>
+
+                    <!-- Quick Sort Select -->
+                    <div class="flex-1 sm:flex-none sm:w-40">
+                        <select name="sort" onchange="this.form.submit()" aria-label="Sort cards"
+                                class="w-full bg-[#17243A] border border-[#2D3C53] rounded-lg px-3 py-2 text-sm text-[#F3F5F8] focus:outline-none focus:border-[#69AFFF]">
+                            <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
+                            <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                            <option value="number" {{ $sort === 'number' ? 'selected' : '' }}>Card Number</option>
+                            <option value="name" {{ $sort === 'name' ? 'selected' : '' }}>Name (A–Z)</option>
+                        </select>
+                    </div>
+
+                    <!-- View Switcher -->
+                    <div class="flex items-center bg-[#17243A] border border-[#2D3C53] rounded-lg p-0.5 flex-shrink-0">
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}"
+                           class="p-1.5 rounded-md transition-colors {{ $viewMode === 'grid' ? 'bg-[#263449] text-[#69AFFF]' : 'text-[#6D7A8D] hover:text-[#F3F5F8]' }}"
+                           title="Grid View" aria-label="Grid View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                        </a>
+                        <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}"
+                           class="p-1.5 rounded-md transition-colors {{ $viewMode === 'list' ? 'bg-[#263449] text-[#69AFFF]' : 'text-[#6D7A8D] hover:text-[#F3F5F8]' }}"
+                           title="List View" aria-label="List View">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Filter Controls Panel -->
+            <div x-show="filtersOpen" x-cloak x-transition
+                 class="p-4 rounded-xl bg-[#17243A] border border-[#C8D2DF]/10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
+                <div>
+                    <label for="frame_id" class="block text-xs text-[#9DAABD] mb-1">Outer Frame</label>
+                    <select id="frame_id" name="frame_id" class="memodex-select py-2">
                         <option value="">All Frames</option>
                         @foreach ($frames as $fr)
                             <option value="{{ $fr->id }}" {{ (string)$frameId === (string)$fr->id ? 'selected' : '' }}>{{ $fr->name }}</option>
@@ -37,10 +89,9 @@
                     </select>
                 </div>
 
-                <!-- Album / Binder Filter -->
-                <div class="lg:col-span-2">
-                    <label for="album_id" class="block text-[11px] font-mono text-memodex-subtle uppercase mb-1">Binder</label>
-                    <select id="album_id" name="album_id" class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-1.5 text-xs text-memodex-text focus:border-memodex-primary focus:ring-1 focus:ring-memodex-primary">
+                <div>
+                    <label for="album_id" class="block text-xs text-[#9DAABD] mb-1">Album / Binder</label>
+                    <select id="album_id" name="album_id" class="memodex-select py-2">
                         <option value="">All Binders</option>
                         @foreach ($albums as $alb)
                             <option value="{{ $alb->id }}" {{ (string)$albumId === (string)$alb->id ? 'selected' : '' }}>{{ $alb->name }}</option>
@@ -48,10 +99,9 @@
                     </select>
                 </div>
 
-                <!-- Date Filter -->
-                <div class="lg:col-span-2">
-                    <label for="date" class="block text-[11px] font-mono text-memodex-subtle uppercase mb-1">Upload Date</label>
-                    <select id="date" name="date" class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-1.5 text-xs text-memodex-text focus:border-memodex-primary focus:ring-1 focus:ring-memodex-primary">
+                <div>
+                    <label for="date" class="block text-xs text-[#9DAABD] mb-1">Date Added</label>
+                    <select id="date" name="date" class="memodex-select py-2">
                         <option value="">All Time</option>
                         <option value="today" {{ $dateFilter === 'today' ? 'selected' : '' }}>Today</option>
                         <option value="this_week" {{ $dateFilter === 'this_week' ? 'selected' : '' }}>This Week</option>
@@ -59,134 +109,113 @@
                     </select>
                 </div>
 
-                <!-- Sort -->
-                <div class="lg:col-span-2">
-                    <label for="sort" class="block text-[11px] font-mono text-memodex-subtle uppercase mb-1">Sort Order</label>
-                    <select id="sort" name="sort" class="w-full bg-memodex-bg border border-memodex-border rounded-md px-3 py-1.5 text-xs text-memodex-text focus:border-memodex-primary focus:ring-1 focus:ring-memodex-primary">
+                <div class="sm:hidden">
+                    <label for="sort_mobile" class="block text-xs text-[#9DAABD] mb-1">Sort Order</label>
+                    <select id="sort_mobile" name="sort" class="memodex-select py-2">
                         <option value="newest" {{ $sort === 'newest' ? 'selected' : '' }}>Newest First</option>
                         <option value="oldest" {{ $sort === 'oldest' ? 'selected' : '' }}>Oldest First</option>
                         <option value="number" {{ $sort === 'number' ? 'selected' : '' }}>Card Number</option>
-                        <option value="name" {{ $sort === 'name' ? 'selected' : '' }}>Name (A-Z)</option>
+                        <option value="name" {{ $sort === 'name' ? 'selected' : '' }}>Name (A–Z)</option>
                     </select>
                 </div>
 
-                <!-- Filter Actions & View Mode Toggle -->
-                <div class="lg:col-span-1 flex items-center gap-1.5">
-                    <button type="submit" class="w-full py-1.5 px-3 bg-memodex-raised hover:bg-memodex-soft border border-memodex-border text-memodex-text rounded-md text-xs font-semibold text-center transition-colors">
-                        Filter
+                <div class="flex items-center gap-2 lg:col-span-2 justify-end">
+                    @if ($search || $frameId || $albumId || $dateFilter)
+                        <a href="{{ route('pokedex.index', ['view' => $viewMode]) }}" class="memodex-btn-ghost text-xs">
+                            Clear All
+                        </a>
+                    @endif
+                    <button type="submit" class="memodex-btn-primary text-xs px-5 py-2.5">
+                        Apply Filters
                     </button>
-                </div>
-            </div>
-
-            <!-- View Mode Switcher -->
-            <div class="flex items-center justify-between pt-2 border-t border-memodex-border/40 text-xs">
-                <span class="text-[11px] text-memodex-muted font-mono">
-                    Showing {{ $cards->firstItem() ?? 0 }} - {{ $cards->lastItem() ?? 0 }} of {{ $cards->total() }} entries
-                </span>
-
-                <div class="flex items-center gap-1">
-                    <span class="text-[11px] font-mono text-memodex-subtle mr-2">View:</span>
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'grid']) }}"
-                       class="p-1.5 rounded border {{ $viewMode === 'grid' ? 'bg-memodex-soft border-memodex-primary text-memodex-primary' : 'border-memodex-border text-memodex-muted hover:text-memodex-text' }}"
-                       title="Grid View">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-                    </a>
-                    <a href="{{ request()->fullUrlWithQuery(['view' => 'list']) }}"
-                       class="p-1.5 rounded border {{ $viewMode === 'list' ? 'bg-memodex-soft border-memodex-primary text-memodex-primary' : 'border-memodex-border text-memodex-muted hover:text-memodex-text' }}"
-                       title="List View">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                    </a>
                 </div>
             </div>
         </form>
 
-        <!-- Card Grid / List / Empty States -->
+        <!-- Card Gallery / List / Empty States -->
         @if ($cards->count() === 0)
             @if ($search || $frameId || $albumId || $dateFilter)
-                <div class="p-12 text-center rounded-xl border border-memodex-border bg-memodex-panel space-y-3">
-                    <p class="text-sm font-semibold text-memodex-text">No matching cards found</p>
-                    <p class="text-xs text-memodex-muted">Try clearing your search query or filters.</p>
-                    <a href="{{ route('pokedex.index') }}" class="inline-block mt-2 text-xs text-memodex-primary hover:underline">
-                        Reset all filters &rarr;
-                    </a>
-                </div>
+                <x-empty-state
+                    title="No matching cards found"
+                    description="No entries in your Pokédex matched your current search or filter criteria."
+                    icon="search">
+                    <x-slot:actions>
+                        <a href="{{ route('pokedex.index', ['view' => $viewMode]) }}" class="memodex-btn-secondary">
+                            Reset Filters
+                        </a>
+                    </x-slot:actions>
+                </x-empty-state>
             @else
-                <div class="p-12 text-center rounded-xl border border-memodex-border bg-memodex-panel space-y-4">
-                    <div class="w-12 h-12 mx-auto rounded-full bg-memodex-raised border border-memodex-border flex items-center justify-center text-memodex-primary">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-memodex-text">Your Pokédex is currently empty</h3>
-                        <p class="text-xs text-memodex-muted mt-1">Upload Pokémon card images to begin building your digital collection binder.</p>
-                    </div>
-                    <a href="{{ route('cards.create') }}" class="inline-flex items-center px-4 py-2 bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg rounded-lg text-xs font-semibold shadow">
-                        + Add First Pokémon Card
-                    </a>
-                </div>
+                <x-empty-state
+                    title="Your Pokédex is ready"
+                    description="Upload finished Pokémon card images to store them intact and mount them in custom outer frames."
+                    icon="card">
+                    <x-slot:actions>
+                        <a href="{{ route('cards.create') }}" class="memodex-btn-primary">
+                            Upload First Cards
+                        </a>
+                    </x-slot:actions>
+                </x-empty-state>
             @endif
         @else
             @if ($viewMode === 'list')
-                <!-- List View -->
-                <div class="rounded-xl border border-memodex-border bg-memodex-panel overflow-hidden">
+                <!-- Editorial Catalog List View -->
+                <div class="rounded-xl border border-[#C8D2DF]/10 bg-[#17243A]/70 overflow-hidden">
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-memodex-raised text-[10px] font-mono uppercase text-memodex-subtle border-b border-memodex-border">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-[#1D293B]/80 text-xs font-medium text-[#9DAABD] border-b border-[#C8D2DF]/10">
                                 <tr>
-                                    <th class="py-3 px-4">Card</th>
-                                    <th class="py-3 px-4">Number</th>
-                                    <th class="py-3 px-4">Frame</th>
-                                    <th class="py-3 px-4">Date Added</th>
-                                    <th class="py-3 px-4">Binders</th>
-                                    <th class="py-3 px-4 text-right">Actions</th>
+                                    <th class="py-3.5 px-4">Card</th>
+                                    <th class="py-3.5 px-4">Serial</th>
+                                    <th class="py-3.5 px-4">Outer Frame</th>
+                                    <th class="py-3.5 px-4 hidden md:table-cell">Binders</th>
+                                    <th class="py-3.5 px-4 hidden sm:table-cell">Archived</th>
+                                    <th class="py-3.5 px-4 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-memodex-border/60">
+                            <tbody class="divide-y divide-[#C8D2DF]/[0.07]">
                                 @foreach ($cards as $card)
-                                    <tr class="hover:bg-memodex-soft/40 transition-colors">
+                                    @php
+                                        $fc = $card->frame?->config ?? [];
+                                    @endphp
+                                    <tr class="hover:bg-[#1D293B]/60 transition-colors">
                                         <td class="py-3 px-4">
-                                            <div class="flex items-center gap-3">
-                                                <a href="{{ route('pokedex.show', $card) }}" class="w-10 h-14 rounded bg-[#0C1118] border border-memodex-border overflow-hidden flex-shrink-0">
-                                                    <img src="{{ route('media.card.framed', $card) }}" alt="{{ $card->display_name }}" class="w-full h-full object-contain">
+                                            <div class="flex items-center gap-3.5">
+                                                <a href="{{ route('pokedex.show', $card) }}" class="w-11 aspect-card rounded-md bg-[#0B111C] border border-[#C8D2DF]/15 overflow-hidden flex-shrink-0 p-0.5">
+                                                    @if ($card->effectiveFramedPath())
+                                                        <img src="{{ route('media.card.framed', $card) }}" alt="{{ $card->display_name }}" class="w-full h-full object-contain" loading="lazy">
+                                                    @endif
                                                 </a>
-                                                <a href="{{ route('pokedex.show', $card) }}" class="font-semibold text-memodex-text hover:text-memodex-primary transition-colors">
+                                                <a href="{{ route('pokedex.show', $card) }}" class="font-medium text-[#F3F5F8] hover:text-[#69AFFF] transition-colors">
                                                     {{ $card->display_name }}
                                                 </a>
                                             </div>
                                         </td>
-                                        <td class="py-3 px-4 font-mono font-bold text-memodex-text">
+                                        <td class="py-3 px-4 font-mono text-xs text-[#9DAABD] tabular-nums whitespace-nowrap">
                                             {{ $card->card_number }}
                                         </td>
                                         <td class="py-3 px-4">
-                                            @php
-                                                $pillBg = $card->frame->config['outer_bg'] ?? '#141D2B';
-                                                $pillColor = $card->frame->config['accent_color'] ?? '#83B9F2';
-                                                $pillBorder = $card->frame->config['border_primary'] ?? '#3D4F66';
-                                            @endphp
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono border"
-                                                  style="background-color: {{ $pillBg }}; color: {{ $pillColor }}; border-color: {{ $pillBorder }};">
-                                                {{ $card->frame->name ?? 'Classic' }}
+                                            <span class="inline-flex items-center gap-2 text-xs text-[#C8D2DF]">
+                                                <span class="w-2.5 h-2.5 rounded-full border flex-shrink-0" style="background-color: {{ $fc['border_primary'] ?? '#3D4F66' }}; border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></span>
+                                                {{ $card->frame?->name ?? 'Classic Frame' }}
                                             </span>
                                         </td>
-                                        <td class="py-3 px-4 text-memodex-muted">
+                                        <td class="py-3 px-4 hidden md:table-cell text-xs text-[#9DAABD]">
+                                            {{ $card->albums->count() > 0 ? $card->albums->pluck('name')->join(', ') : '—' }}
+                                        </td>
+                                        <td class="py-3 px-4 hidden sm:table-cell text-xs text-[#6D7A8D] whitespace-nowrap">
                                             {{ $card->created_at->format('M d, Y') }}
                                         </td>
-                                        <td class="py-3 px-4">
-                                            @if ($card->albums->count() > 0)
-                                                <span class="text-memodex-text">{{ $card->albums->pluck('name')->join(', ') }}</span>
-                                            @else
-                                                <span class="text-memodex-subtle">—</span>
-                                            @endif
-                                        </td>
                                         <td class="py-3 px-4 text-right">
-                                            <div class="flex items-center justify-end gap-2">
+                                            <div class="inline-flex items-center gap-2">
                                                 <form method="POST" action="{{ route('favorites.toggle', $card) }}">
                                                     @csrf
-                                                    <button type="submit" class="p-1.5 rounded hover:bg-memodex-raised {{ $card->is_favorite ? 'text-amber-400' : 'text-memodex-subtle' }}" title="Toggle Favorite">
+                                                    <button type="submit" class="p-1.5 rounded-lg hover:bg-[#263449] transition-colors {{ $card->is_favorite ? 'text-[#D4B36A]' : 'text-[#6D7A8D] hover:text-[#C8D2DF]' }}" title="Toggle Favorite">
                                                         <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                                                     </button>
                                                 </form>
-                                                <a href="{{ route('pokedex.show', $card) }}" class="px-2.5 py-1 rounded bg-memodex-raised hover:bg-memodex-soft text-memodex-text font-medium transition-colors">
-                                                    View
+                                                <a href="{{ route('pokedex.show', $card) }}" class="memodex-btn-secondary text-xs px-3 py-1.5">
+                                                    Inspect
                                                 </a>
                                             </div>
                                         </td>
@@ -197,8 +226,8 @@
                     </div>
                 </div>
             @else
-                <!-- Grid View -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <!-- Balanced Responsive 63:88 Card Gallery -->
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5 lg:gap-6">
                     @foreach ($cards as $card)
                         <x-card-tile :card="$card" />
                     @endforeach
@@ -206,9 +235,11 @@
             @endif
 
             <!-- Pagination -->
-            <div class="pt-6">
+            @if ($cards->hasPages())
+            <div class="pt-4">
                 {{ $cards->links() }}
             </div>
+            @endif
         @endif
     </div>
 </x-app-layout>

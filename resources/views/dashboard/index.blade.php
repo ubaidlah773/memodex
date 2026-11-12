@@ -1,154 +1,285 @@
 <x-app-layout>
-    <x-slot name="title">Dashboard — MEMODEX</x-slot>
+    <x-slot name="title">Home — MEMODEX</x-slot>
 
-    <div class="space-y-8">
-        <!-- 1. Header / Greeting -->
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-memodex-border">
+    <div class="space-y-10 lg:space-y-12">
+        <!-- Editorial Welcome Header -->
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-5 pb-6 border-b border-[#C8D2DF]/[0.08]">
             <div>
-                <span class="text-[11px] font-mono tracking-widest uppercase text-memodex-primary">Digital Binder Studio</span>
-                <h1 class="text-2xl font-bold tracking-tight text-memodex-text mt-1">
+                <p class="text-xs font-medium tracking-wider uppercase text-[#69AFFF]">Personal Collection</p>
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8] mt-1.5">
                     Welcome back, {{ $user->name }}
                 </h1>
-                <p class="text-xs text-memodex-muted mt-1">
-                    Your collection holds {{ $totalCards }} card{{ $totalCards === 1 ? '' : 's' }} across {{ $totalAlbums }} binder{{ $totalAlbums === 1 ? '' : 's' }}.
+                <p class="text-sm text-[#9DAABD] mt-1.5">
+                    @if ($totalCards === 0)
+                        Your personal 63&times;88 mm trading card archive is ready.
+                    @else
+                        {{ number_format($totalCards) }} {{ $totalCards === 1 ? 'card' : 'cards' }} preserved across {{ number_format($totalAlbums) }} {{ $totalAlbums === 1 ? 'binder' : 'binders' }}.
+                    @endif
                 </p>
             </div>
-            <div class="flex items-center gap-2.5">
-                <a href="{{ route('photos.index') }}" class="inline-flex items-center px-3.5 py-2 rounded-lg text-xs font-medium border border-memodex-border bg-memodex-raised hover:bg-memodex-soft text-memodex-text transition-colors">
-                    Photo Library
+
+            <div class="flex items-center gap-3 self-start sm:self-auto">
+                <a href="{{ route('pokedex.index') }}" class="memodex-btn-secondary">
+                    Explore Pokédex
                 </a>
-                <a href="{{ route('cards.create') }}" class="inline-flex items-center px-4 py-2 rounded-lg text-xs font-semibold bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg transition-colors shadow">
-                    + Add Pokémon Cards
+                <a href="{{ route('cards.create') }}" class="memodex-btn-primary">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                    <span>Upload Cards</span>
                 </a>
             </div>
-        </div>
+        </section>
 
         @if ($totalCards === 0)
-            <!-- Onboarding Empty State for New Account -->
-            <div class="rounded-xl border border-memodex-border bg-memodex-panel p-8 md:p-12 text-center max-w-2xl mx-auto space-y-6">
-                <div class="w-16 h-16 mx-auto rounded-full bg-memodex-raised border border-memodex-primary/40 flex items-center justify-center text-memodex-primary shadow-inner">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                </div>
-                <div class="space-y-2">
-                    <h2 class="text-lg font-bold text-memodex-text">Your Pokédex is ready for its first card</h2>
-                    <p class="text-xs text-memodex-muted max-w-md mx-auto leading-relaxed">
-                        MEMODEX preserves your authentic Pokémon card artwork 100% intact while adding archive-grade outer display frames.
-                    </p>
-                </div>
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                    <a href="{{ route('cards.create', ['mode' => 'automatic']) }}" class="w-full sm:w-auto px-6 py-2.5 rounded-lg text-xs font-semibold bg-memodex-primary hover:bg-memodex-primary-strong text-memodex-bg transition-colors shadow">
-                        Upload Pokémon Cards &rarr;
-                    </a>
-                </div>
-            </div>
-        @else
-            <!-- 2. Hero / Featured Card & Collection Overview -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <!-- Featured Card Display -->
-                @if ($featuredCard)
-                <div class="lg:col-span-5 rounded-xl border border-memodex-border bg-memodex-panel p-6 flex flex-col sm:flex-row gap-6 items-center">
-                    <div class="w-44 sm:w-40 flex-shrink-0">
-                        <x-card-tile :card="$featuredCard" />
+            <!-- Empty Collection Onboarding -->
+            <section class="space-y-10">
+                <x-empty-state
+                    title="Begin your personal card archive"
+                    description="Upload finished Pokémon card images to store them privately in original quality and mount them in archival 63:88 outer display frames."
+                    icon="card">
+                    <x-slot:actions>
+                        <a href="{{ route('cards.create', ['mode' => 'automatic']) }}" class="memodex-btn-primary">
+                            Upload First Cards
+                        </a>
+                        <a href="{{ route('photos.index') }}" class="memodex-btn-secondary">
+                            Open My Collection
+                        </a>
+                    </x-slot:actions>
+                </x-empty-state>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-[#C8D2DF]/[0.08]">
+                    <div class="space-y-2">
+                        <span class="font-mono text-xs text-[#69AFFF]">01</span>
+                        <h3 class="font-display text-base font-semibold text-[#F3F5F8]">100% Original Preservation</h3>
+                        <p class="text-sm text-[#9DAABD] leading-relaxed">Your uploaded artwork, typography, HP, and rarity symbols are never cropped, regenerated, or altered.</p>
                     </div>
-                    <div class="flex-1 space-y-3 text-center sm:text-left">
-                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-mono uppercase bg-memodex-raised text-memodex-primary border border-memodex-primary/30">
-                            Featured Item
-                        </span>
-                        <h3 class="text-base font-bold text-memodex-text">{{ $featuredCard->display_name }}</h3>
-                        <p class="text-xs text-memodex-muted">
-                            Outer Frame: <span class="text-memodex-text font-medium">{{ $featuredCard->frame->name ?? 'Classic' }}</span>
-                        </p>
-                        <p class="text-[11px] font-mono text-memodex-subtle">
-                            {{ $featuredCard->card_number }} &bull; {{ $featuredCard->created_at->format('M d, Y') }}
-                        </p>
-                        <div class="pt-1">
-                            <a href="{{ route('pokedex.show', $featuredCard) }}" class="inline-flex items-center text-xs font-medium text-memodex-primary hover:text-memodex-primary-strong">
-                                View in Pokédex &rarr;
+                    <div class="space-y-2">
+                        <span class="font-mono text-xs text-[#69AFFF]">02</span>
+                        <h3 class="font-display text-base font-semibold text-[#F3F5F8]">Archival Outer Frames</h3>
+                        <p class="text-sm text-[#9DAABD] leading-relaxed">Select Classic, Silver, Gold, Electric, Holographic, Rainbow, or Museum-grade outer display mounts.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <span class="font-mono text-xs text-[#D4B36A]">03</span>
+                        <h3 class="font-display text-base font-semibold text-[#F3F5F8]">Curated Binders &amp; Sharing</h3>
+                        <p class="text-sm text-[#9DAABD] leading-relaxed">Organize cards across thematic digital binders and share read-only showcase links safely.</p>
+                    </div>
+                </div>
+            </section>
+        @else
+            <!-- Spotlight Showcase & Collection Progress -->
+            <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                <!-- Left: Featured Card Showcase -->
+                @if ($featuredCard)
+                @php
+                    $featFrame = $featuredCard->frame;
+                    $featAccent = $featFrame?->config['accent_color'] ?? '#69AFFF';
+                    $featPrimary = $featFrame?->config['border_primary'] ?? '#3D4F66';
+                @endphp
+                <div class="lg:col-span-7 bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row gap-6 sm:gap-8 items-center">
+                    <a href="{{ route('pokedex.show', $featuredCard) }}"
+                       class="w-44 sm:w-48 flex-shrink-0 aspect-card card-stage rounded-xl border border-[#C8D2DF]/15 p-2 overflow-hidden block group">
+                        @if ($featuredCard->effectiveFramedPath())
+                            <img src="{{ route('media.card.framed', $featuredCard) }}?v={{ $featuredCard->updated_at?->timestamp }}"
+                                 alt="{{ $featuredCard->display_name }}"
+                                 class="w-full h-full object-contain transition-transform duration-200 group-hover:scale-[1.02]">
+                        @elseif ($featuredCard->photo)
+                            <img src="{{ route('media.photo.thumbnail', $featuredCard->photo) }}"
+                                 alt="{{ $featuredCard->display_name }}"
+                                 class="w-full h-full object-contain">
+                        @endif
+                    </a>
+
+                    <div class="flex-1 min-w-0 text-center sm:text-left space-y-4">
+                        <div class="space-y-1.5">
+                            <div class="inline-flex items-center gap-2 text-xs font-medium {{ $featuredCard->is_favorite ? 'text-[#D4B36A]' : 'text-[#69AFFF]' }}">
+                                <span class="w-1.5 h-1.5 rounded-full {{ $featuredCard->is_favorite ? 'bg-[#D4B36A]' : 'bg-[#69AFFF]' }}"></span>
+                                <span>{{ $featuredCard->is_favorite ? 'Starred Spotlight' : 'Latest Entry' }}</span>
+                            </div>
+                            <h2 class="font-display text-xl sm:text-2xl font-semibold text-[#F3F5F8] truncate">
+                                {{ $featuredCard->display_name }}
+                            </h2>
+                            <p class="font-mono text-xs text-[#9DAABD] tabular-nums">
+                                {{ $featuredCard->card_number }} &middot; {{ $featuredCard->created_at->format('M d, Y') }}
+                            </p>
+                        </div>
+
+                        <div class="pt-3 border-t border-[#C8D2DF]/[0.08] flex flex-wrap items-center justify-center sm:justify-start gap-x-6 gap-y-2 text-xs">
+                            <div>
+                                <span class="text-[#6D7A8D] block">Outer Frame</span>
+                                <span class="inline-flex items-center gap-1.5 text-[#F3F5F8] font-medium mt-0.5">
+                                    <span class="w-2.5 h-2.5 rounded-full border" style="background-color: {{ $featPrimary }}; border-color: {{ $featAccent }};"></span>
+                                    {{ $featFrame?->name ?? 'Classic Frame' }}
+                                </span>
+                            </div>
+                            @if ($featuredCard->albums->count() > 0)
+                            <div>
+                                <span class="text-[#6D7A8D] block">Binders</span>
+                                <span class="text-[#C8D2DF] font-medium mt-0.5 block">
+                                    {{ $featuredCard->albums->pluck('name')->take(2)->join(', ') }}
+                                </span>
+                            </div>
+                            @endif
+                        </div>
+
+                        <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
+                            <a href="{{ route('pokedex.show', $featuredCard) }}" class="memodex-btn-primary text-xs px-4 py-2">
+                                Inspect Card
+                            </a>
+                            <a href="{{ route('media.card.download.framed', $featuredCard) }}" class="memodex-btn-secondary text-xs px-3.5 py-2">
+                                Download PNG
                             </a>
                         </div>
                     </div>
                 </div>
                 @endif
 
-                <!-- Disciplined Collection Summary (4 values only) -->
-                <div class="lg:col-span-{{ $featuredCard ? '7' : '12' }} grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div class="p-4 rounded-xl border border-memodex-border bg-memodex-panel flex flex-col justify-between">
-                        <span class="text-[11px] font-mono text-memodex-subtle uppercase">Total Cards</span>
-                        <span class="text-2xl font-bold font-mono text-memodex-text mt-2">{{ $totalCards }}</span>
-                        <a href="{{ route('pokedex.index') }}" class="text-[11px] text-memodex-primary mt-2 hover:underline">Explore Pokédex &rarr;</a>
+                <!-- Right: Collection Telemetry & Progress (Clean Typographic Ledger) -->
+                <div class="lg:col-span-{{ $featuredCard ? '5' : '12' }} flex flex-col justify-between gap-6 bg-[#17243A]/60 border border-[#C8D2DF]/10 rounded-2xl p-6">
+                    <!-- Clean Hairline Stats Matrix (Not 4 identical SaaS cards) -->
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-5 pb-5 border-b border-[#C8D2DF]/[0.08]">
+                        <div>
+                            <span class="text-xs text-[#6D7A8D] block">Archived Cards</span>
+                            <div class="flex items-baseline justify-between mt-1">
+                                <span class="font-display text-2xl font-semibold text-[#F3F5F8] tabular-nums">{{ number_format($totalCards) }}</span>
+                                <a href="{{ route('pokedex.index') }}" class="text-xs text-[#69AFFF] hover:underline">Catalog &rarr;</a>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs text-[#6D7A8D] block">Curated Binders</span>
+                            <div class="flex items-baseline justify-between mt-1">
+                                <span class="font-display text-2xl font-semibold text-[#F3F5F8] tabular-nums">{{ number_format($totalAlbums) }}</span>
+                                <a href="{{ route('albums.index') }}" class="text-xs text-[#69AFFF] hover:underline">Binders &rarr;</a>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs text-[#6D7A8D] block">Starred Favorites</span>
+                            <div class="flex items-baseline justify-between mt-1">
+                                <span class="font-display text-2xl font-semibold text-[#D4B36A] tabular-nums">{{ number_format($totalFavorites) }}</span>
+                                <a href="{{ route('favorites.index') }}" class="text-xs text-[#9DAABD] hover:text-[#F3F5F8]">View &rarr;</a>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-xs text-[#6D7A8D] block">Original Vault</span>
+                            <div class="flex items-baseline justify-between mt-1">
+                                <span class="font-display text-2xl font-semibold text-[#F3F5F8] tabular-nums">{{ number_format($totalPhotos) }}</span>
+                                <a href="{{ route('photos.index') }}" class="text-xs text-[#9DAABD] hover:text-[#F3F5F8]">Assets &rarr;</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4 rounded-xl border border-memodex-border bg-memodex-panel flex flex-col justify-between">
-                        <span class="text-[11px] font-mono text-memodex-subtle uppercase">Binders</span>
-                        <span class="text-2xl font-bold font-mono text-memodex-text mt-2">{{ $totalAlbums }}</span>
-                        <a href="{{ route('albums.index') }}" class="text-[11px] text-memodex-primary mt-2 hover:underline">View Binders &rarr;</a>
+
+                    <!-- Collection Progress Bars -->
+                    <div class="space-y-4">
+                        @php
+                            $frameRatio = $activeFramesCount > 0 ? min(100, round(($framesCollectedCount / $activeFramesCount) * 100)) : 0;
+                        @endphp
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1.5">
+                                <span class="text-[#9DAABD] font-medium">Frame Collection Progress</span>
+                                <span class="font-mono text-[#F3F5F8] tabular-nums">{{ $framesCollectedCount }} / {{ $activeFramesCount }} frames</span>
+                            </div>
+                            <div class="w-full h-1.5 rounded-full bg-[#101827] overflow-hidden">
+                                <div class="h-full rounded-full bg-[#D4B36A] transition-all duration-300" style="width: {{ $frameRatio }}%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex items-center justify-between text-xs mb-1.5">
+                                <span class="text-[#9DAABD] font-medium">Private Storage</span>
+                                <span class="font-mono text-[#9DAABD] tabular-nums">{{ round($storageUsed / (1024 * 1024), 1) }} / {{ round($storageQuota / (1024 * 1024), 0) }} MB ({{ $storagePercent }}%)</span>
+                            </div>
+                            <div class="w-full h-1.5 rounded-full bg-[#101827] overflow-hidden">
+                                <div class="h-full rounded-full bg-[#69AFFF] transition-all duration-300" style="width: {{ min(100, $storagePercent) }}%"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="p-4 rounded-xl border border-memodex-border bg-memodex-panel flex flex-col justify-between">
-                        <span class="text-[11px] font-mono text-memodex-subtle uppercase">Favorites</span>
-                        <span class="text-2xl font-bold font-mono text-memodex-text mt-2">{{ $totalFavorites }}</span>
-                        <a href="{{ route('favorites.index') }}" class="text-[11px] text-memodex-primary mt-2 hover:underline">View Stars &rarr;</a>
-                    </div>
-                    <div class="p-4 rounded-xl border border-memodex-border bg-memodex-panel flex flex-col justify-between">
-                        <span class="text-[11px] font-mono text-memodex-subtle uppercase">Storage</span>
-                        <span class="text-2xl font-bold font-mono text-memodex-text mt-2">{{ $storagePercent }}%</span>
-                        <span class="text-[11px] text-memodex-subtle font-mono mt-2">{{ round($storageUsed / (1024 * 1024), 1) }} / 500 MB</span>
+
+                    <!-- Quick Upload Action Link -->
+                    <div class="pt-4 border-t border-[#C8D2DF]/[0.08] flex items-center justify-between gap-3">
+                        <span class="text-xs text-[#9DAABD]">Ready to archive another card?</span>
+                        <a href="{{ route('cards.create', ['mode' => 'manual']) }}" class="text-xs font-semibold text-[#69AFFF] hover:underline whitespace-nowrap">
+                            Open Frame Studio &rarr;
+                        </a>
                     </div>
                 </div>
-            </div>
+            </section>
 
-            <!-- 3. Recently Added Cards -->
-            <div class="space-y-4 pt-4">
-                <div class="flex items-center justify-between">
+            <!-- Recently Added Cards -->
+            <section class="space-y-5 pt-4 border-t border-[#C8D2DF]/[0.08]">
+                <div class="flex items-end justify-between gap-4">
                     <div>
-                        <h2 class="text-base font-bold text-memodex-text">Recent Additions</h2>
-                        <p class="text-xs text-memodex-muted">Your latest archived Pokémon cards</p>
+                        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Recently Added</h2>
+                        <p class="text-sm text-[#9DAABD] mt-0.5">Latest entries preserved in your Pokédex</p>
                     </div>
-                    <a href="{{ route('pokedex.index') }}" class="text-xs font-medium text-memodex-primary hover:text-memodex-primary-strong">
-                        View All ({{ $totalCards }}) &rarr;
+                    <a href="{{ route('pokedex.index') }}" class="text-sm font-medium text-[#69AFFF] hover:underline whitespace-nowrap">
+                        View all ({{ $totalCards }}) &rarr;
                     </a>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
                     @foreach ($recentCards as $card)
                         <x-card-tile :card="$card" />
                     @endforeach
                 </div>
-            </div>
+            </section>
 
-            <!-- 4. Active Binders -->
+            <!-- Recent Binders / Albums -->
             @if ($recentAlbums->count() > 0)
-            <div class="space-y-4 pt-4">
-                <div class="flex items-center justify-between">
+            <section class="space-y-5 pt-4 border-t border-[#C8D2DF]/[0.08]">
+                <div class="flex items-end justify-between gap-4">
                     <div>
-                        <h2 class="text-base font-bold text-memodex-text">Themed Binders</h2>
-                        <p class="text-xs text-memodex-muted">Organized card sets</p>
+                        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Recent Binders</h2>
+                        <p class="text-sm text-[#9DAABD] mt-0.5">Thematic collections and curated sets</p>
                     </div>
-                    <a href="{{ route('albums.index') }}" class="text-xs font-medium text-memodex-primary hover:text-memodex-primary-strong">
-                        Manage Binders &rarr;
+                    <a href="{{ route('albums.index') }}" class="text-sm font-medium text-[#69AFFF] hover:underline whitespace-nowrap">
+                        All albums ({{ $totalAlbums }}) &rarr;
                     </a>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     @foreach ($recentAlbums as $album)
-                    <a href="{{ route('albums.show', $album) }}" class="p-4 rounded-xl border border-memodex-border bg-memodex-panel hover:bg-memodex-raised transition-colors group block">
-                        <div class="flex items-start justify-between">
-                            <h3 class="font-semibold text-sm text-memodex-text group-hover:text-memodex-primary transition-colors truncate">
-                                {{ $album->name }}
-                            </h3>
-                            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-memodex-raised border border-memodex-border text-memodex-subtle">
-                                {{ $album->visibility }}
-                            </span>
-                        </div>
-                        <p class="text-xs text-memodex-muted mt-2 line-clamp-2">
-                            {{ $album->description ?: 'No binder description added.' }}
-                        </p>
-                        <div class="mt-4 pt-2 border-t border-memodex-border flex items-center justify-between text-xs text-memodex-subtle font-mono">
-                            <span>{{ $album->cards_count }} cards</span>
-                            <span class="text-memodex-primary">Open &rarr;</span>
-                        </div>
-                    </a>
+                        <a href="{{ route('albums.show', $album) }}"
+                           class="group bg-[#1D293B]/55 hover:bg-[#1D293B] border border-[#C8D2DF]/10 hover:border-[#69AFFF]/35 rounded-xl overflow-hidden transition-all flex flex-col justify-between">
+                            <!-- Binder 3-slot 63:88 card preview strip -->
+                            <div class="p-3.5 bg-[#0B111C]/70 border-b border-[#C8D2DF]/[0.08]">
+                                <div class="grid grid-cols-3 gap-2">
+                                    @for ($slot = 0; $slot < 3; $slot++)
+                                        @php $previewCard = $album->cards->get($slot); @endphp
+                                        <div class="aspect-card rounded-md bg-[#101827] border border-[#C8D2DF]/10 overflow-hidden flex items-center justify-center p-0.5">
+                                            @if ($previewCard && $previewCard->effectiveFramedPath())
+                                                <img src="{{ route('media.card.framed', $previewCard) }}?v={{ $previewCard->updated_at?->timestamp }}" alt="{{ $previewCard->display_name }}" class="w-full h-full object-contain" loading="lazy">
+                                            @elseif ($previewCard && $previewCard->photo)
+                                                <img src="{{ route('media.photo.thumbnail', $previewCard->photo) }}" alt="{{ $previewCard->display_name }}" class="w-full h-full object-contain" loading="lazy">
+                                            @else
+                                                <div class="w-3 h-4 rounded-sm border border-[#C8D2DF]/10"></div>
+                                            @endif
+                                        </div>
+                                    @endfor
+                                </div>
+                            </div>
+
+                            <div class="p-4 flex-1 flex flex-col justify-between gap-3">
+                                <div>
+                                    <div class="flex items-start justify-between gap-2">
+                                        <h3 class="font-display font-semibold text-sm text-[#F3F5F8] group-hover:text-[#69AFFF] truncate transition-colors">
+                                            {{ $album->name }}
+                                        </h3>
+                                        @if ($album->isPublic())
+                                            <span class="w-2 h-2 rounded-full bg-[#5CC99B] flex-shrink-0 mt-1.5" title="Public share link enabled"></span>
+                                        @endif
+                                    </div>
+                                    <p class="text-xs text-[#9DAABD] mt-1 line-clamp-2 leading-relaxed">
+                                        {{ $album->description ?: 'Curated card binder' }}
+                                    </p>
+                                </div>
+
+                                <div class="pt-2.5 border-t border-[#C8D2DF]/[0.07] flex items-center justify-between text-xs text-[#6D7A8D]">
+                                    <span class="font-mono tabular-nums">{{ $album->cards_count }} {{ $album->cards_count === 1 ? 'card' : 'cards' }}</span>
+                                    <span class="text-[#69AFFF] font-medium">Open &rarr;</span>
+                                </div>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
-            </div>
+            </section>
             @endif
         @endif
     </div>
