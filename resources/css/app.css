@@ -4,18 +4,18 @@
 
 :root {
     color-scheme: dark;
-    --color-midnight: #101827;
-    --color-navy: #17243A;
-    --color-surface: #1D293B;
-    --color-elevated: #263449;
-    --color-stage: #0B111C;
-    --color-border: rgba(200, 210, 223, 0.1);
-    --color-text-primary: #F3F5F8;
-    --color-text-secondary: #9DAABD;
-    --color-text-muted: #6D7A8D;
-    --color-electric: #69AFFF;
-    --color-silver: #C8D2DF;
-    --color-gold: #D4B36A;
+    --color-midnight: #161F3B;
+    --color-navy: #26355D;
+    --color-surface: #223056;
+    --color-elevated: #304273;
+    --color-stage: #11182E;
+    --color-border: rgba(212, 220, 240, 0.12);
+    --color-text-primary: #F6F7FB;
+    --color-text-secondary: #BCC6E0;
+    --color-text-muted: #8B99BD;
+    --color-violet: #AF47D2;
+    --color-amber: #FF8F00;
+    --color-gold: #FFDB00;
 }
 
 [x-cloak] {
@@ -37,7 +37,7 @@ body {
 /* Museum display stage behind authentic cards */
 .card-stage {
     background-color: var(--color-stage);
-    background-image: radial-gradient(circle at 50% 35%, rgba(105, 175, 255, 0.06), transparent 70%);
+    background-image: radial-gradient(circle at 50% 35%, rgba(175, 71, 210, 0.10), transparent 72%);
 }
 
 /* Collector card tile hover interaction */
@@ -50,29 +50,29 @@ body {
 @media (hover: hover) and (pointer: fine) {
     .card-collectible:hover {
         transform: translateY(-3px);
-        box-shadow: 0 16px 32px -12px rgba(4, 9, 18, 0.72), 0 0 0 1px rgba(105, 175, 255, 0.28);
+        box-shadow: 0 16px 32px -12px rgba(8, 12, 28, 0.78), 0 0 0 1px rgba(175, 71, 210, 0.45);
     }
 }
 
 /* Refined dark inputs & focus styling */
 .memodex-input {
-    @apply w-full bg-[#101827] border border-[#2D3C53] rounded-lg px-3.5 py-2.5 text-sm text-[#F3F5F8] placeholder:text-[#6D7A8D] transition-colors focus:outline-none focus:border-[#69AFFF] focus:ring-1 focus:ring-[#69AFFF];
+    @apply w-full bg-[#161F3B] border border-[#3B4E82] rounded-lg px-3.5 py-2.5 text-sm text-[#F6F7FB] placeholder:text-[#8B99BD] transition-colors focus:outline-none focus:border-[#AF47D2] focus:ring-1 focus:ring-[#AF47D2];
 }
 
 .memodex-select {
-    @apply w-full bg-[#101827] border border-[#2D3C53] rounded-lg px-3.5 py-2.5 text-sm text-[#F3F5F8] transition-colors focus:outline-none focus:border-[#69AFFF] focus:ring-1 focus:ring-[#69AFFF];
+    @apply w-full bg-[#161F3B] border border-[#3B4E82] rounded-lg px-3.5 py-2.5 text-sm text-[#F6F7FB] transition-colors focus:outline-none focus:border-[#AF47D2] focus:ring-1 focus:ring-[#AF47D2];
 }
 
 .memodex-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-[#69AFFF] hover:bg-[#4E98F2] active:scale-[0.99] text-[#101827] whitespace-nowrap flex-shrink-0 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold bg-[#FF8F00] hover:bg-[#FFA22B] active:scale-[0.99] text-[#141C33] whitespace-nowrap flex-shrink-0 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .memodex-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#1D293B] hover:bg-[#263449] border border-[#2D3C53] hover:border-[#3E5474] text-[#F3F5F8] whitespace-nowrap flex-shrink-0 transition-all duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium bg-[#26355D] hover:bg-[#304273] border border-[#3B4E82] hover:border-[#AF47D2]/60 text-[#F6F7FB] whitespace-nowrap flex-shrink-0 transition-all duration-150;
 }
 
 .memodex-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#9DAABD] hover:text-[#F3F5F8] hover:bg-[#1D293B] transition-colors duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-[#BCC6E0] hover:text-[#F6F7FB] hover:bg-[#26355D] transition-colors duration-150;
 }
 
 /* Subtle custom scrollbars */
@@ -81,14 +81,14 @@ body {
     height: 7px;
 }
 ::-webkit-scrollbar-track {
-    background: #101827;
+    background: #161F3B;
 }
 ::-webkit-scrollbar-thumb {
-    background: #263449;
+    background: #304273;
     border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: #3E5474;
+    background: #AF47D2;
 }
 
 @media (prefers-reduced-motion: reduce) {

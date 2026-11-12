@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">
             Update Password
         </h2>
 
-        <p class="mt-1 text-sm text-[#9DAABD]">
+        <p class="mt-1 text-sm text-[#BCC6E0]">
             Ensure your account is using a long, random password to stay secure.
         </p>
     </header>

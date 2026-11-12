@@ -1,10 +1,10 @@
 <section class="space-y-4">
     <header>
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">
             Delete Account
         </h2>
 
-        <p class="mt-1 text-sm text-[#9DAABD] leading-relaxed">
+        <p class="mt-1 text-sm text-[#BCC6E0] leading-relaxed">
             Once your account is deleted, all of its resources and data will be permanently deleted. Before deleting your account, please download any original cards you wish to retain.
         </p>
     </header>
@@ -19,11 +19,11 @@
             @csrf
             @method('delete')
 
-            <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">
+            <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">
                 Are you sure you want to delete your account?
             </h2>
 
-            <p class="text-sm text-[#9DAABD] leading-relaxed">
+            <p class="text-sm text-[#BCC6E0] leading-relaxed">
                 Once your account is deleted, all of its cards, photos, and binders will be permanently deleted. Enter your password to confirm.
             </p>
 

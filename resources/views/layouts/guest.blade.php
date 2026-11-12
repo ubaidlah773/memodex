@@ -13,24 +13,24 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#101827] text-[#F3F5F8] font-sans antialiased min-h-screen flex flex-col justify-center items-center px-4 py-10 selection:bg-[#69AFFF] selection:text-[#101827]">
+<body class="bg-[#161F3B] text-[#F6F7FB] font-sans antialiased min-h-screen flex flex-col justify-center items-center px-4 py-10 selection:bg-[#FF8F00] selection:text-[#161F3B]">
 
     <div class="w-full max-w-[440px] space-y-8">
         <!-- Refined Editorial Brand Header -->
         <div class="flex flex-col items-center text-center space-y-3">
             <x-brand-mark size="lg" />
             <div>
-                <h1 class="font-display text-2xl font-bold tracking-[0.18em] text-[#F3F5F8]">MEMODEX</h1>
-                <p class="text-xs text-[#9DAABD] mt-1 tracking-wide">Personal Trading Card Archive</p>
+                <h1 class="font-display text-2xl font-bold tracking-[0.18em] text-[#F6F7FB]">MEMODEX</h1>
+                <p class="text-xs text-[#BCC6E0] mt-1 tracking-wide">Personal Trading Card Archive</p>
             </div>
         </div>
 
         <!-- Form Surface -->
-        <div class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
+        <div class="bg-[#26355D] border border-[#D4DCF0]/10 rounded-2xl p-6 sm:p-8 shadow-2xl">
             {{ $slot }}
         </div>
 
-        <p class="text-xs text-center text-[#6D7A8D]">
+        <p class="text-xs text-center text-[#8B99BD]">
             &copy; {{ date('Y') }} MEMODEX &middot; 63&times;88 mm Archival Preservation
         </p>
     </div>

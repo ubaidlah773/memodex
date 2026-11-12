@@ -12,9 +12,9 @@
 
     <div class="space-y-8 max-w-4xl" x-data="{ tab: '{{ $initialTab }}' }">
         <!-- Page Header -->
-        <section class="pb-5 border-b border-[#C8D2DF]/[0.08]">
-            <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">Settings</h1>
-            <p class="text-sm text-[#9DAABD] mt-1">Manage collector identity, account credentials, and private vault allocation.</p>
+        <section class="pb-5 border-b border-[#D4DCF0]/[0.08]">
+            <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F6F7FB]">Settings</h1>
+            <p class="text-sm text-[#BCC6E0] mt-1">Manage collector identity, account credentials, and private vault allocation.</p>
         </section>
 
         <!-- Responsive Settings Shell (Sidebar Tabs on Desktop, Horizontal Tabs on Mobile) -->
@@ -22,22 +22,22 @@
             <!-- Tab Navigation -->
             <nav class="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-col gap-1.5" aria-label="Settings Sections">
                 <button type="button" @click="tab = 'profile'"
-                        :class="tab === 'profile' ? 'bg-[#1D293B] text-[#F3F5F8] border-[#69AFFF]/40' : 'text-[#9DAABD] hover:text-[#F3F5F8] border-transparent hover:bg-[#17243A]'"
+                        :class="tab === 'profile' ? 'bg-[#223056] text-[#F6F7FB] border-[#AF47D2]/40' : 'text-[#BCC6E0] hover:text-[#F6F7FB] border-transparent hover:bg-[#26355D]'"
                         class="px-3.5 py-2.5 rounded-xl border text-sm font-medium text-center md:text-left whitespace-nowrap transition-colors">
                     Profile
                 </button>
                 <button type="button" @click="tab = 'security'"
-                        :class="tab === 'security' ? 'bg-[#1D293B] text-[#F3F5F8] border-[#69AFFF]/40' : 'text-[#9DAABD] hover:text-[#F3F5F8] border-transparent hover:bg-[#17243A]'"
+                        :class="tab === 'security' ? 'bg-[#223056] text-[#F6F7FB] border-[#AF47D2]/40' : 'text-[#BCC6E0] hover:text-[#F6F7FB] border-transparent hover:bg-[#26355D]'"
                         class="px-3.5 py-2.5 rounded-xl border text-sm font-medium text-center md:text-left whitespace-nowrap transition-colors">
                     Security
                 </button>
                 <button type="button" @click="tab = 'storage'"
-                        :class="tab === 'storage' ? 'bg-[#1D293B] text-[#F3F5F8] border-[#69AFFF]/40' : 'text-[#9DAABD] hover:text-[#F3F5F8] border-transparent hover:bg-[#17243A]'"
+                        :class="tab === 'storage' ? 'bg-[#223056] text-[#F6F7FB] border-[#AF47D2]/40' : 'text-[#BCC6E0] hover:text-[#F6F7FB] border-transparent hover:bg-[#26355D]'"
                         class="px-3.5 py-2.5 rounded-xl border text-sm font-medium text-center md:text-left whitespace-nowrap transition-colors">
                     Storage
                 </button>
                 <button type="button" @click="tab = 'account'"
-                        :class="tab === 'account' ? 'bg-[#1D293B] text-[#EB6F75] border-[#EB6F75]/35' : 'text-[#9DAABD] hover:text-[#EB6F75] border-transparent hover:bg-[#17243A]'"
+                        :class="tab === 'account' ? 'bg-[#223056] text-[#EB6F75] border-[#EB6F75]/35' : 'text-[#BCC6E0] hover:text-[#EB6F75] border-transparent hover:bg-[#26355D]'"
                         class="px-3.5 py-2.5 rounded-xl border text-sm font-medium text-center md:text-left whitespace-nowrap transition-colors">
                     Account
                 </button>
@@ -46,10 +46,10 @@
             <!-- Tab Content Area -->
             <div class="md:col-span-9">
                 <!-- TAB 1: PROFILE -->
-                <section x-show="tab === 'profile'" class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 space-y-6">
+                <section x-show="tab === 'profile'" class="bg-[#26355D] border border-[#D4DCF0]/10 rounded-2xl p-6 sm:p-8 space-y-6">
                     <div>
-                        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Collector Identity</h2>
-                        <p class="text-sm text-[#9DAABD] mt-1">Customize your display name and collector handle.</p>
+                        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Collector Identity</h2>
+                        <p class="text-sm text-[#BCC6E0] mt-1">Customize your display name and collector handle.</p>
                     </div>
 
                     <form method="POST" action="{{ route('settings.profile') }}" class="space-y-4 max-w-lg">
@@ -65,7 +65,7 @@
                         <div>
                             <x-input-label for="username" value="Collector Handle" />
                             <div class="flex items-center">
-                                <span class="px-3.5 py-2.5 bg-[#1D293B] border border-r-0 border-[#2D3C53] rounded-l-lg text-sm text-[#6D7A8D] font-mono">@</span>
+                                <span class="px-3.5 py-2.5 bg-[#223056] border border-r-0 border-[#3B4E82] rounded-l-lg text-sm text-[#8B99BD] font-mono">@</span>
                                 <input type="text" id="username" name="username" value="{{ old('username', $user->username) }}" placeholder="collector" class="memodex-input rounded-l-none font-mono">
                             </div>
                             <x-input-error :messages="$errors->get('username')" />
@@ -83,10 +83,10 @@
                 </section>
 
                 <!-- TAB 2: PASSWORD & SECURITY -->
-                <section x-show="tab === 'security'" x-cloak class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 space-y-6">
+                <section x-show="tab === 'security'" x-cloak class="bg-[#26355D] border border-[#D4DCF0]/10 rounded-2xl p-6 sm:p-8 space-y-6">
                     <div>
-                        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Update Password</h2>
-                        <p class="text-sm text-[#9DAABD] mt-1">Protect your private card collection with a strong, unique password.</p>
+                        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Update Password</h2>
+                        <p class="text-sm text-[#BCC6E0] mt-1">Protect your private card collection with a strong, unique password.</p>
                     </div>
 
                     <form method="post" action="{{ route('password.update') }}" class="space-y-4 max-w-lg">
@@ -121,47 +121,47 @@
                 </section>
 
                 <!-- TAB 3: STORAGE & QUOTA -->
-                <section x-show="tab === 'storage'" x-cloak class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 space-y-6">
+                <section x-show="tab === 'storage'" x-cloak class="bg-[#26355D] border border-[#D4DCF0]/10 rounded-2xl p-6 sm:p-8 space-y-6">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div>
-                            <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Private Storage Allocation</h2>
-                            <p class="text-sm text-[#9DAABD] mt-1">Originals, proportional thumbnails, and high-res framed PNG exports.</p>
+                            <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Private Storage Allocation</h2>
+                            <p class="text-sm text-[#BCC6E0] mt-1">Originals, proportional thumbnails, and high-res framed PNG exports.</p>
                         </div>
-                        <span class="font-mono text-sm text-[#F3F5F8] tabular-nums">
+                        <span class="font-mono text-sm text-[#F6F7FB] tabular-nums">
                             {{ round($user->storage_used_bytes / (1024 * 1024), 2) }} / {{ round($user->storage_quota_bytes / (1024 * 1024), 0) }} MB ({{ $user->storagePercent() }}%)
                         </span>
                     </div>
 
-                    <div class="w-full bg-[#101827] rounded-full h-2.5 overflow-hidden border border-[#C8D2DF]/10">
-                        <div class="bg-[#69AFFF] h-full rounded-full transition-all duration-300" style="width: {{ min(100, $user->storagePercent()) }}%"></div>
+                    <div class="w-full bg-[#161F3B] rounded-full h-2.5 overflow-hidden border border-[#D4DCF0]/10">
+                        <div class="bg-[#FF8F00] h-full rounded-full transition-all duration-300" style="width: {{ min(100, $user->storagePercent()) }}%"></div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-4 pt-2 border-t border-[#C8D2DF]/[0.08]">
+                    <div class="grid grid-cols-3 gap-4 pt-2 border-t border-[#D4DCF0]/[0.08]">
                         <div>
-                            <span class="text-xs text-[#6D7A8D] block">Original Uploads</span>
-                            <span class="font-display text-xl font-semibold text-[#F3F5F8] tabular-nums mt-1 block">{{ $totalPhotos }}</span>
+                            <span class="text-xs text-[#8B99BD] block">Original Uploads</span>
+                            <span class="font-display text-xl font-semibold text-[#F6F7FB] tabular-nums mt-1 block">{{ $totalPhotos }}</span>
                         </div>
                         <div>
-                            <span class="text-xs text-[#6D7A8D] block">Archived Cards</span>
-                            <span class="font-display text-xl font-semibold text-[#F3F5F8] tabular-nums mt-1 block">{{ $totalCards }}</span>
+                            <span class="text-xs text-[#8B99BD] block">Archived Cards</span>
+                            <span class="font-display text-xl font-semibold text-[#F6F7FB] tabular-nums mt-1 block">{{ $totalCards }}</span>
                         </div>
                         <div>
-                            <span class="text-xs text-[#6D7A8D] block">Curated Binders</span>
-                            <span class="font-display text-xl font-semibold text-[#F3F5F8] tabular-nums mt-1 block">{{ $totalAlbums }}</span>
+                            <span class="text-xs text-[#8B99BD] block">Curated Binders</span>
+                            <span class="font-display text-xl font-semibold text-[#F6F7FB] tabular-nums mt-1 block">{{ $totalAlbums }}</span>
                         </div>
                     </div>
                 </section>
 
                 <!-- TAB 4: ACCOUNT / DANGER ZONE -->
-                <section x-show="tab === 'account'" x-cloak class="bg-[#17243A] border border-[#C8D2DF]/10 rounded-2xl p-6 sm:p-8 space-y-6">
+                <section x-show="tab === 'account'" x-cloak class="bg-[#26355D] border border-[#D4DCF0]/10 rounded-2xl p-6 sm:p-8 space-y-6">
                     <div>
-                        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Account Session &amp; Deletion</h2>
-                        <p class="text-sm text-[#9DAABD] mt-1 leading-relaxed">
+                        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Account Session &amp; Deletion</h2>
+                        <p class="text-sm text-[#BCC6E0] mt-1 leading-relaxed">
                             Permanently delete your MEMODEX account, uploaded original card scans, framed renders, and binders. This action cannot be undone.
                         </p>
                     </div>
 
-                    <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#C8D2DF]/[0.08]">
+                    <div class="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-[#D4DCF0]/[0.08]">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <button type="submit" class="memodex-btn-secondary text-xs">Sign Out of Session</button>
@@ -180,8 +180,8 @@
                             @csrf
                             @method('delete')
 
-                            <h3 class="font-display text-lg font-semibold text-[#F3F5F8]">Delete your account permanently?</h3>
-                            <p class="text-sm text-[#9DAABD] leading-relaxed">
+                            <h3 class="font-display text-lg font-semibold text-[#F6F7FB]">Delete your account permanently?</h3>
+                            <p class="text-sm text-[#BCC6E0] leading-relaxed">
                                 Enter your current password to confirm permanent deletion of your MEMODEX archive.
                             </p>
 

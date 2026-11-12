@@ -2,8 +2,8 @@
     <x-slot name="title">Reset Password — MEMODEX</x-slot>
 
     <div class="mb-5">
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Reset your password</h2>
-        <p class="text-sm text-[#9DAABD] mt-1 leading-relaxed">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Reset your password</h2>
+        <p class="text-sm text-[#BCC6E0] mt-1 leading-relaxed">
             Enter the email associated with your MEMODEX account and we will send you a recovery link.
         </p>
     </div>
@@ -24,7 +24,7 @@
                 Send Password Reset Link
             </button>
             <div class="text-center">
-                <a href="{{ route('login') }}" class="text-xs text-[#9DAABD] hover:text-[#F3F5F8]">Back to sign in</a>
+                <a href="{{ route('login') }}" class="text-xs text-[#BCC6E0] hover:text-[#F6F7FB]">Back to sign in</a>
             </div>
         </div>
     </form>

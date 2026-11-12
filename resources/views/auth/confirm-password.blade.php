@@ -2,8 +2,8 @@
     <x-slot name="title">Confirm Password — MEMODEX</x-slot>
 
     <div class="mb-5">
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Confirm your password</h2>
-        <p class="text-sm text-[#9DAABD] mt-1 leading-relaxed">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Confirm your password</h2>
+        <p class="text-sm text-[#BCC6E0] mt-1 leading-relaxed">
             This is a protected action. Please confirm your password before continuing.
         </p>
     </div>

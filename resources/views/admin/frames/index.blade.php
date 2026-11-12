@@ -2,13 +2,13 @@
     <x-slot name="title">Outer Frame Management — Admin MEMODEX</x-slot>
 
     <div class="space-y-8">
-        <section class="pb-5 border-b border-[#C8D2DF]/[0.08]">
-            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-sm text-[#9DAABD] hover:text-[#F3F5F8] transition-colors">
+        <section class="pb-5 border-b border-[#D4DCF0]/[0.08]">
+            <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center gap-2 text-sm text-[#BCC6E0] hover:text-[#F6F7FB] transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
                 <span>Back to Admin Center</span>
             </a>
-            <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8] mt-2">Outer Frame Management</h1>
-            <p class="text-sm text-[#9DAABD] mt-1">Configure border widths, color tokens, and availability for outer card frames.</p>
+            <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F6F7FB] mt-2">Outer Frame Management</h1>
+            <p class="text-sm text-[#BCC6E0] mt-1">Configure border widths, color tokens, and availability for outer card frames.</p>
         </section>
 
         @if ($frames->isEmpty())
@@ -17,7 +17,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 @foreach ($frames as $fr)
                     @php $fc = $fr->config ?? []; @endphp
-                    <article class="p-6 rounded-2xl border border-[#C8D2DF]/10 bg-[#17243A] flex flex-col justify-between gap-5">
+                    <article class="p-6 rounded-2xl border border-[#D4DCF0]/10 bg-[#26355D] flex flex-col justify-between gap-5">
                         <div class="space-y-4">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="flex items-center gap-3.5">
@@ -26,8 +26,8 @@
                                         <div class="w-full h-full rounded-[2px] border" style="border-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></div>
                                     </div>
                                     <div>
-                                        <h2 class="font-display text-base font-semibold text-[#F3F5F8]">{{ $fr->name }}</h2>
-                                        <p class="text-xs font-mono text-[#6D7A8D]">{{ $fr->slug }}</p>
+                                        <h2 class="font-display text-base font-semibold text-[#F6F7FB]">{{ $fr->name }}</h2>
+                                        <p class="text-xs font-mono text-[#8B99BD]">{{ $fr->slug }}</p>
                                     </div>
                                 </div>
                                 <span class="inline-flex items-center gap-1.5 text-xs font-medium {{ $fr->is_active ? 'text-[#5CC99B]' : 'text-[#EB6F75]' }}">
@@ -36,35 +36,35 @@
                                 </span>
                             </div>
 
-                            <p class="text-sm text-[#9DAABD] leading-relaxed">{{ $fr->description }}</p>
+                            <p class="text-sm text-[#BCC6E0] leading-relaxed">{{ $fr->description }}</p>
 
-                            <dl class="pt-3 border-t border-[#C8D2DF]/[0.08] grid grid-cols-2 gap-3 text-xs">
+                            <dl class="pt-3 border-t border-[#D4DCF0]/[0.08] grid grid-cols-2 gap-3 text-xs">
                                 <div>
-                                    <dt class="text-[#6D7A8D]">Primary Border</dt>
-                                    <dd class="font-mono text-[#F3F5F8] flex items-center gap-1.5 mt-1">
-                                        <span class="w-3 h-3 rounded border border-[#C8D2DF]/20" style="background-color: {{ $fc['border_primary'] ?? '#3D4F66' }};"></span>
+                                    <dt class="text-[#8B99BD]">Primary Border</dt>
+                                    <dd class="font-mono text-[#F6F7FB] flex items-center gap-1.5 mt-1">
+                                        <span class="w-3 h-3 rounded border border-[#D4DCF0]/20" style="background-color: {{ $fc['border_primary'] ?? '#3D4F66' }};"></span>
                                         {{ $fc['border_primary'] ?? '#3D4F66' }}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-[#6D7A8D]">Accent Token</dt>
-                                    <dd class="font-mono text-[#F3F5F8] flex items-center gap-1.5 mt-1">
-                                        <span class="w-3 h-3 rounded border border-[#C8D2DF]/20" style="background-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></span>
+                                    <dt class="text-[#8B99BD]">Accent Token</dt>
+                                    <dd class="font-mono text-[#F6F7FB] flex items-center gap-1.5 mt-1">
+                                        <span class="w-3 h-3 rounded border border-[#D4DCF0]/20" style="background-color: {{ $fc['accent_color'] ?? '#69AFFF' }};"></span>
                                         {{ $fc['accent_color'] ?? '#69AFFF' }}
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-[#6D7A8D]">Border Width</dt>
-                                    <dd class="font-mono text-[#9DAABD] mt-1">{{ $fc['border_width'] ?? 32 }} px</dd>
+                                    <dt class="text-[#8B99BD]">Border Width</dt>
+                                    <dd class="font-mono text-[#BCC6E0] mt-1">{{ $fc['border_width'] ?? 32 }} px</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-[#6D7A8D]">Usage</dt>
-                                    <dd class="font-mono text-[#9DAABD] mt-1">{{ $fr->cards_count }} cards</dd>
+                                    <dt class="text-[#8B99BD]">Usage</dt>
+                                    <dd class="font-mono text-[#BCC6E0] mt-1">{{ $fr->cards_count }} cards</dd>
                                 </div>
                             </dl>
                         </div>
 
-                        <div class="pt-4 border-t border-[#C8D2DF]/[0.08] flex items-center justify-between">
+                        <div class="pt-4 border-t border-[#D4DCF0]/[0.08] flex items-center justify-between">
                             <form method="POST" action="{{ route('admin.frames.toggle', $fr) }}">
                                 @csrf
                                 <button type="submit" class="text-xs font-medium hover:underline {{ $fr->is_active ? 'text-[#EB6F75]' : 'text-[#5CC99B]' }}">

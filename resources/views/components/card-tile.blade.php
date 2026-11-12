@@ -7,10 +7,10 @@
     $frameName = $card->frame?->name ?? 'Classic Frame';
 @endphp
 
-<article class="group relative flex flex-col bg-[#1D293B]/60 hover:bg-[#1D293B] rounded-xl border border-[#C8D2DF]/10 hover:border-[#69AFFF]/35 overflow-hidden card-collectible">
+<article class="group relative flex flex-col bg-[#223056]/60 hover:bg-[#223056] rounded-xl border border-[#D4DCF0]/10 hover:border-[#AF47D2]/35 overflow-hidden card-collectible">
     <!-- Pure, Unobstructed 63:88 Card Display Viewport -->
     <a href="{{ route('pokedex.show', $card) }}"
-       class="block relative w-full aspect-card card-stage overflow-hidden p-1.5 sm:p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#69AFFF]"
+       class="block relative w-full aspect-card card-stage overflow-hidden p-1.5 sm:p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#AF47D2]"
        aria-label="Inspect {{ $card->display_name }} ({{ $card->card_number }})">
         @if ($card->effectiveFramedPath())
             <img src="{{ route('media.card.framed', $card) }}?v={{ $card->updated_at?->timestamp }}"
@@ -23,17 +23,17 @@
                  class="w-full h-full object-contain select-none transition-transform duration-200 group-hover:scale-[1.015]"
                  loading="lazy">
         @else
-            <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center border border-dashed border-[#C8D2DF]/15 rounded-lg">
-                <span class="text-xs font-mono text-[#6D7A8D] tabular-nums">{{ $card->card_number }}</span>
+            <div class="w-full h-full flex flex-col items-center justify-center p-4 text-center border border-dashed border-[#D4DCF0]/15 rounded-lg">
+                <span class="text-xs font-mono text-[#8B99BD] tabular-nums">{{ $card->card_number }}</span>
             </div>
         @endif
     </a>
 
     <!-- Clean Editorial Metadata Strip (Zero Collision with Card Artwork) -->
-    <div class="px-3.5 py-3 border-t border-[#C8D2DF]/[0.08] flex flex-col gap-1.5">
+    <div class="px-3.5 py-3 border-t border-[#D4DCF0]/[0.08] flex flex-col gap-1.5">
         <div class="flex items-start justify-between gap-2 min-w-0">
             <a href="{{ route('pokedex.show', $card) }}"
-               class="text-sm font-semibold text-[#F3F5F8] hover:text-[#69AFFF] truncate transition-colors leading-snug"
+               class="text-sm font-semibold text-[#F6F7FB] hover:text-[#FFA22B] truncate transition-colors leading-snug"
                title="{{ $card->display_name }}">
                 {{ $card->display_name }}
             </a>
@@ -42,7 +42,7 @@
             <form method="POST" action="{{ route('favorites.toggle', $card) }}" class="flex-shrink-0 -mt-0.5">
                 @csrf
                 <button type="submit"
-                        class="p-1 rounded-md transition-colors {{ $card->is_favorite ? 'text-[#D4B36A] hover:text-[#E5C880]' : 'text-[#6D7A8D] hover:text-[#C8D2DF]' }}"
+                        class="p-1 rounded-md transition-colors {{ $card->is_favorite ? 'text-[#FFDB00] hover:text-[#FFE84D]' : 'text-[#8B99BD] hover:text-[#D4DCF0]' }}"
                         title="{{ $card->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}"
                         aria-label="{{ $card->is_favorite ? 'Remove from favorites' : 'Add to favorites' }}">
                     @if ($card->is_favorite)
@@ -55,11 +55,11 @@
             @endif
         </div>
 
-        <div class="flex items-center justify-between gap-2 text-xs text-[#6D7A8D] min-w-0">
-            <span class="font-mono tabular-nums text-[11px] text-[#9DAABD] whitespace-nowrap">{{ $card->card_number }}</span>
+        <div class="flex items-center justify-between gap-2 text-xs text-[#8B99BD] min-w-0">
+            <span class="font-mono tabular-nums text-[11px] text-[#BCC6E0] whitespace-nowrap">{{ $card->card_number }}</span>
             <span class="inline-flex items-center gap-1.5 min-w-0">
                 <span class="w-2 h-2 rounded-full flex-shrink-0 border" style="background-color: {{ $framePrimary }}; border-color: {{ $frameAccent }};"></span>
-                <span class="truncate text-[11px] text-[#9DAABD]">{{ str_replace(' Frame', '', $frameName) }}</span>
+                <span class="truncate text-[11px] text-[#BCC6E0]">{{ str_replace(' Frame', '', $frameName) }}</span>
             </span>
         </div>
     </div>

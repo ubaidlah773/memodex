@@ -3,10 +3,10 @@
 
     <div class="space-y-8" x-data="{ showCreateModal: false }">
         <!-- Page Header -->
-        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#C8D2DF]/[0.08]">
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#D4DCF0]/[0.08]">
             <div>
-                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">Albums &amp; Binders</h1>
-                <p class="text-sm text-[#9DAABD] mt-1">
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F6F7FB]">Albums &amp; Binders</h1>
+                <p class="text-sm text-[#BCC6E0] mt-1">
                     Curate your framed cards into themed digital binders with controlled public sharing.
                 </p>
             </div>
@@ -31,19 +31,19 @@
             <!-- Digital Card Binder Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 @foreach ($albums as $album)
-                    <article class="group bg-[#17243A] border border-[#C8D2DF]/10 hover:border-[#69AFFF]/35 rounded-2xl overflow-hidden transition-all flex flex-col justify-between card-collectible">
+                    <article class="group bg-[#26355D] border border-[#D4DCF0]/10 hover:border-[#AF47D2]/35 rounded-2xl overflow-hidden transition-all flex flex-col justify-between card-collectible">
                         <!-- Binder Sleeve Preview Window (4-Pocket 63:88 Spread) -->
-                        <a href="{{ route('albums.show', $album) }}" class="block p-4 bg-[#0B111C]/80 border-b border-[#C8D2DF]/[0.08]">
+                        <a href="{{ route('albums.show', $album) }}" class="block p-4 bg-[#11182E]/80 border-b border-[#D4DCF0]/[0.08]">
                             <div class="grid grid-cols-4 gap-2.5">
                                 @for ($i = 0; $i < 4; $i++)
                                     @php $card = $album->cards->get($i); @endphp
-                                    <div class="aspect-card rounded-lg bg-[#101827] border border-[#C8D2DF]/10 overflow-hidden flex items-center justify-center p-1">
+                                    <div class="aspect-card rounded-lg bg-[#161F3B] border border-[#D4DCF0]/10 overflow-hidden flex items-center justify-center p-1">
                                         @if ($card && $card->effectiveFramedPath())
                                             <img src="{{ route('media.card.framed', $card) }}" alt="{{ $card->display_name }}" class="w-full h-full object-contain" loading="lazy">
                                         @elseif ($card && $card->photo)
                                             <img src="{{ route('media.photo.thumbnail', $card->photo) }}" alt="{{ $card->display_name }}" class="w-full h-full object-contain" loading="lazy">
                                         @else
-                                            <div class="w-4 h-6 rounded-sm border border-dashed border-[#C8D2DF]/10"></div>
+                                            <div class="w-4 h-6 rounded-sm border border-dashed border-[#D4DCF0]/10"></div>
                                         @endif
                                     </div>
                                 @endfor
@@ -54,22 +54,22 @@
                         <div class="p-5 flex-1 flex flex-col justify-between gap-4">
                             <div class="space-y-1.5">
                                 <div class="flex items-start justify-between gap-3">
-                                    <a href="{{ route('albums.show', $album) }}" class="font-display text-lg font-semibold text-[#F3F5F8] group-hover:text-[#69AFFF] transition-colors truncate">
+                                    <a href="{{ route('albums.show', $album) }}" class="font-display text-lg font-semibold text-[#F6F7FB] group-hover:text-[#FFA22B] transition-colors truncate">
                                         {{ $album->name }}
                                     </a>
-                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium flex-shrink-0 {{ $album->isPublic() ? 'text-[#5CC99B]' : 'text-[#6D7A8D]' }}">
-                                        <span class="w-1.5 h-1.5 rounded-full {{ $album->isPublic() ? 'bg-[#5CC99B]' : 'bg-[#6D7A8D]' }}"></span>
+                                    <span class="inline-flex items-center gap-1.5 text-xs font-medium flex-shrink-0 {{ $album->isPublic() ? 'text-[#5CC99B]' : 'text-[#8B99BD]' }}">
+                                        <span class="w-1.5 h-1.5 rounded-full {{ $album->isPublic() ? 'bg-[#5CC99B]' : 'bg-[#8B99BD]' }}"></span>
                                         {{ $album->isPublic() ? 'Shared' : 'Private' }}
                                     </span>
                                 </div>
-                                <p class="text-sm text-[#9DAABD] line-clamp-2 leading-relaxed">
+                                <p class="text-sm text-[#BCC6E0] line-clamp-2 leading-relaxed">
                                     {{ $album->description ?: 'No description added.' }}
                                 </p>
                             </div>
 
-                            <div class="pt-3 border-t border-[#C8D2DF]/[0.08] flex items-center justify-between text-xs">
-                                <span class="font-mono text-[#9DAABD] tabular-nums">{{ $album->cards_count }} {{ $album->cards_count === 1 ? 'card' : 'cards' }}</span>
-                                <a href="{{ route('albums.show', $album) }}" class="font-medium text-[#69AFFF] hover:underline">
+                            <div class="pt-3 border-t border-[#D4DCF0]/[0.08] flex items-center justify-between text-xs">
+                                <span class="font-mono text-[#BCC6E0] tabular-nums">{{ $album->cards_count }} {{ $album->cards_count === 1 ? 'card' : 'cards' }}</span>
+                                <a href="{{ route('albums.show', $album) }}" class="font-medium text-[#FFA22B] hover:underline">
                                     Open Binder &rarr;
                                 </a>
                             </div>
@@ -87,27 +87,27 @@
 
         <!-- Create Binder Modal -->
         <div x-show="showCreateModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div class="fixed inset-0 bg-[#070B14]/80 backdrop-blur-sm" @click="showCreateModal = false"></div>
-            <div class="relative z-10 bg-[#1D293B] border border-[#C8D2DF]/15 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl">
-                <div class="flex items-center justify-between pb-3 border-b border-[#C8D2DF]/10">
-                    <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Create New Binder</h2>
-                    <button type="button" @click="showCreateModal = false" class="text-[#9DAABD] hover:text-[#F3F5F8] text-xl leading-none">&times;</button>
+            <div class="fixed inset-0 bg-[#0B1021]/80 backdrop-blur-sm" @click="showCreateModal = false"></div>
+            <div class="relative z-10 bg-[#223056] border border-[#D4DCF0]/15 rounded-2xl p-6 max-w-md w-full space-y-5 shadow-2xl">
+                <div class="flex items-center justify-between pb-3 border-b border-[#D4DCF0]/10">
+                    <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Create New Binder</h2>
+                    <button type="button" @click="showCreateModal = false" class="text-[#BCC6E0] hover:text-[#F6F7FB] text-xl leading-none">&times;</button>
                 </div>
 
                 <form method="POST" action="{{ route('albums.store') }}" class="space-y-4">
                     @csrf
                     <div>
-                        <label for="modal_name" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Binder Title</label>
+                        <label for="modal_name" class="block text-xs font-medium text-[#BCC6E0] mb-1.5">Binder Title</label>
                         <input type="text" id="modal_name" name="name" required maxlength="80" placeholder="e.g. Base Set Holofoil Archive" class="memodex-input">
                     </div>
 
                     <div>
-                        <label for="modal_desc" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Description (Optional)</label>
+                        <label for="modal_desc" class="block text-xs font-medium text-[#BCC6E0] mb-1.5">Description (Optional)</label>
                         <textarea id="modal_desc" name="description" rows="3" maxlength="300" placeholder="Notes on this binder set or collection theme..." class="memodex-input"></textarea>
                     </div>
 
                     <div>
-                        <label for="modal_vis" class="block text-xs font-medium text-[#9DAABD] mb-1.5">Visibility</label>
+                        <label for="modal_vis" class="block text-xs font-medium text-[#BCC6E0] mb-1.5">Visibility</label>
                         <select id="modal_vis" name="visibility" class="memodex-select">
                             <option value="private">Private (Only visible to you)</option>
                             <option value="public-link">Public Link (Ready for shareable token)</option>

@@ -1,10 +1,10 @@
 <section>
     <header>
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">
             Profile Information
         </h2>
 
-        <p class="mt-1 text-sm text-[#9DAABD]">
+        <p class="mt-1 text-sm text-[#BCC6E0]">
             Update your account's display name and email address.
         </p>
     </header>
@@ -30,9 +30,9 @@
 
             @if ($user instanceof \Illuminate\Contracts\Auth\MustVerifyEmail && ! $user->hasVerifiedEmail())
                 <div class="mt-2">
-                    <p class="text-xs text-[#9DAABD]">
+                    <p class="text-xs text-[#BCC6E0]">
                         Your email address is unverified.
-                        <button form="send-verification" class="underline text-[#69AFFF] hover:text-[#F3F5F8] ml-1">
+                        <button form="send-verification" class="underline text-[#FFA22B] hover:text-[#F6F7FB] ml-1">
                             Click here to re-send the verification email.
                         </button>
                     </p>

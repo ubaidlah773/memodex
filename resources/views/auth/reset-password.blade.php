@@ -2,8 +2,8 @@
     <x-slot name="title">Choose New Password — MEMODEX</x-slot>
 
     <div class="mb-5">
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Set a new password</h2>
-        <p class="text-sm text-[#9DAABD] mt-1">Choose a strong password for your collection archive.</p>
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Set a new password</h2>
+        <p class="text-sm text-[#BCC6E0] mt-1">Choose a strong password for your collection archive.</p>
     </div>
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-4">

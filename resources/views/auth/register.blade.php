@@ -2,8 +2,8 @@
     <x-slot name="title">Create Account — MEMODEX</x-slot>
 
     <div class="mb-6">
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Create collector account</h2>
-        <p class="text-sm text-[#9DAABD] mt-1">Start archiving your authentic Pokémon cards in 63:88 frames.</p>
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Create collector account</h2>
+        <p class="text-sm text-[#BCC6E0] mt-1">Start archiving your authentic Pokémon cards in 63:88 frames.</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-4">
@@ -38,9 +38,9 @@
                 Create Collector Account
             </button>
 
-            <p class="text-center text-xs text-[#9DAABD] pt-2 border-t border-[#C8D2DF]/10">
+            <p class="text-center text-xs text-[#BCC6E0] pt-2 border-t border-[#D4DCF0]/10">
                 Already have an account?
-                <a href="{{ route('login') }}" class="text-[#69AFFF] hover:underline font-medium">Sign in</a>
+                <a href="{{ route('login') }}" class="text-[#FFA22B] hover:underline font-medium">Sign in</a>
             </p>
         </div>
     </form>

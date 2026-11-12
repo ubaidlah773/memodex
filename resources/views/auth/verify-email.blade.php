@@ -2,8 +2,8 @@
     <x-slot name="title">Verify Email — MEMODEX</x-slot>
 
     <div class="mb-5">
-        <h2 class="font-display text-lg font-semibold text-[#F3F5F8]">Verify your email</h2>
-        <p class="text-sm text-[#9DAABD] mt-1 leading-relaxed">
+        <h2 class="font-display text-lg font-semibold text-[#F6F7FB]">Verify your email</h2>
+        <p class="text-sm text-[#BCC6E0] mt-1 leading-relaxed">
             Thanks for signing up! Please verify your email address by clicking the link we just sent you.
         </p>
     </div>
@@ -24,7 +24,7 @@
 
         <form method="POST" action="{{ route('logout') }}">
             @csrf
-            <button type="submit" class="text-xs text-[#9DAABD] hover:text-[#F3F5F8] underline">
+            <button type="submit" class="text-xs text-[#BCC6E0] hover:text-[#F6F7FB] underline">
                 Sign Out
             </button>
         </form>

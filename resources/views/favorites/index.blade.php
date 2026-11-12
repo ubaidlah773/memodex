@@ -2,10 +2,10 @@
     <x-slot name="title">Favorites — MEMODEX</x-slot>
 
     <div class="space-y-6">
-        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#C8D2DF]/[0.08]">
+        <section class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-5 border-b border-[#D4DCF0]/[0.08]">
             <div>
-                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F3F5F8]">Favorites</h1>
-                <p class="text-sm text-[#9DAABD] mt-1">
+                <h1 class="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-[#F6F7FB]">Favorites</h1>
+                <p class="text-sm text-[#BCC6E0] mt-1">
                     {{ number_format($cards->total()) }} starred {{ $cards->total() === 1 ? 'card' : 'cards' }} pinned across your collection.
                 </p>
             </div>
